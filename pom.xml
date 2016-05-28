@@ -55,13 +55,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.buschmais.jqassistant.plugin</groupId>
-				<artifactId>jqassistant.plugin.bom</artifactId>
-				<type>pom</type>
-				<scope>import</scope>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.eclipse.persistence</groupId>
 				<artifactId>javax.persistence</artifactId>
 				<version>2.0.0</version>
@@ -74,18 +67,21 @@
 		<dependency>
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.common</artifactId>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.common</artifactId>
 			<type>xsl</type>
 			<classifier>plugin2asciidoc</classifier>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.common</artifactId>
 			<type>xsl</type>
 			<classifier>rules2asciidoc-v2</classifier>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.buschmais.jqassistant.core</groupId>
@@ -94,10 +90,12 @@
 		<dependency>
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.java</artifactId>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.maven3</artifactId>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.buschmais.jqassistant.core</groupId>
@@ -110,6 +108,7 @@
 		<dependency>
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.common</artifactId>
+            <version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
@@ -126,6 +125,7 @@
 			<groupId>com.buschmais.jqassistant.plugin</groupId>
 			<artifactId>jqassistant.plugin.java</artifactId>
 			<type>test-jar</type>
+            <version>${project.version}</version>
 		</dependency>
 		<dependency>
             <groupId>org.mockito</groupId>
