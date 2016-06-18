@@ -11,7 +11,7 @@
 	</parent>
 
 	<groupId>com.buschmais.jqassistant.plugin</groupId>
-	<artifactId>jqassistant.plugin.m2repo</artifactId>
+	<artifactId>m2repo</artifactId>
 
 	<properties>
  		<aetherVersion>1.0.0.v20140518</aetherVersion>
