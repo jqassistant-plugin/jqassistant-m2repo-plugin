@@ -12,6 +12,7 @@
 
 	<groupId>com.buschmais.jqassistant.plugin</groupId>
 	<artifactId>m2repo</artifactId>
+	<name>jQAssistant Maven 2 Repository Plugin</name>
 
 	<properties>
  		<aetherVersion>1.0.0.v20140518</aetherVersion>
