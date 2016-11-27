@@ -1,0 +1,5 @@
+== jQAssistant M2 Repository Plugin Version 1.2
+
+- Maven coordinates changed from `com.buschmais.jqassistant.plugin:jqassistant.plugin.m2repo`
+  to `com.buschmais.jqassistant.plugin:m2repo`.
+
