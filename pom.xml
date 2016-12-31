@@ -43,7 +43,7 @@
 	<properties>
 		<jqa-java-plugin.version>1.2-RC2-SNAPSHOT</jqa-java-plugin.version>
 		<jqa-maven3-plugin.version>1.2-RC2-SNAPSHOT</jqa-maven3-plugin.version>
-		<jqa-plugin-common.version>1.2-RC2-SNAPSHOT</jqa-plugin-common.version>
+		<jqa-plugin-common.version>1.2</jqa-plugin-common.version>
 
  		<aetherVersion>1.0.0.v20140518</aetherVersion>
 		<mavenVersion>3.1.0</mavenVersion>
