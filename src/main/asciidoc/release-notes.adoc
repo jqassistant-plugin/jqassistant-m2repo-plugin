@@ -1,6 +1,7 @@
 
 = jQAssistant M2 Repository Release Notes
 
+include::1.3.adoc[]
 include::1.2.adoc[]
 
 
