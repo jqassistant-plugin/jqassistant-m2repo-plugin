@@ -80,8 +80,7 @@ public class MavenRepositoryScannerPluginIT extends AbstractPluginIT {
 
             Long countJarNodes =
                     store.executeQuery("MATCH (n:Maven:Artifact:Jar) RETURN count(n) as nodes").getSingleResult().get("nodes", Long.class);
-            final int expectedJarNodes = 40;
-            assertThat("Number of jar nodes is wrong.", countJarNodes, equalTo(40L));
+            assertThat("Number of jar nodes is wrong.", countJarNodes, equalTo(40l));
 
             MavenRepositoryDescriptor repositoryDescriptor =
                     store.executeQuery("MATCH (r:Maven:Repository) RETURN r").getSingleResult().get("r", MavenRepositoryDescriptor.class);

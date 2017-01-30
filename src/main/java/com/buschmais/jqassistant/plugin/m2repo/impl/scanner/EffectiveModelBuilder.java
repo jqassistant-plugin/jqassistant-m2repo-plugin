@@ -138,8 +138,16 @@ public class EffectiveModelBuilder implements PomModelBuilder {
         }
 
         @Override
-        public void addRepository(Repository repository) throws InvalidRepositoryException {
+        public ModelSource resolveModel(Parent parent) throws UnresolvableModelException {
+            return resolveModel(parent.getGroupId(), parent.getArtifactId(), parent.getVersion());
+        }
 
+        @Override
+        public void addRepository(Repository repository) throws InvalidRepositoryException {
+        }
+
+        @Override
+        public void addRepository(Repository repository, boolean replace) throws InvalidRepositoryException {
         }
 
         @Override

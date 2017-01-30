@@ -83,17 +83,6 @@ public class MavenIndex {
     }
 
     /**
-     * Releases the {@link IndexSearcher} instance.
-     * 
-     * @param searcher
-     *            the {@link IndexSearcher}
-     * @throws IOException
-     */
-    public void closeIndexSearcher(IndexSearcher searcher) throws IOException {
-        indexingContext.releaseIndexSearcher(searcher);
-    }
-
-    /**
      * Creates a new {@link IndexingContext}.
      * 
      * @param repoUrl
@@ -161,16 +150,6 @@ public class MavenIndex {
      */
     public Date getLastUpdateLocalRepo() {
         return getIndexingContext().getTimestamp();
-    }
-
-    /**
-     * Creates a new {@link IndexSearcher}
-     * 
-     * @return a new {@link IndexSearcher}
-     * @throws IOException
-     */
-    public IndexSearcher newIndexSearcher() throws IOException {
-        return indexingContext.acquireIndexSearcher();
     }
 
     /**
