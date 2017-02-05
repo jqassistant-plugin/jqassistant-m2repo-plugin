@@ -1,5 +1,8 @@
 package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -9,7 +12,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.index.ArtifactInfo;
 import org.apache.maven.index.MAVEN;
 import org.javastack.httpd.HttpServer;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,17 +20,11 @@ import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvider;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 import com.buschmais.jqassistant.plugin.maven3.impl.scanner.artifact.MavenArtifactResolver;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
 
 public class MavenArtifactScannerPluginIT extends AbstractPluginIT {
 
@@ -109,8 +105,8 @@ public class MavenArtifactScannerPluginIT extends AbstractPluginIT {
 
             MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository) RETURN r").getSingleResult()
                     .get("r", MavenRepositoryDescriptor.class);
-            assertThat(repoDescriptor, not(nullValue()));
-            assertThat(repoDescriptor.getContainedModels(), hasSize(1));
+            assertThat(repositoryDescriptor, not(nullValue()));
+            assertThat(repositoryDescriptor.getContainedModels(), hasSize(1));
         } finally {
             store.commitTransaction();
             stopServer();

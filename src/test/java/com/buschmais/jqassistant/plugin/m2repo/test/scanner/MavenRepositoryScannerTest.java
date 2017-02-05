@@ -26,11 +26,11 @@ import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.EffectiveModelBuilder;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.MavenIndex;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.MavenRepositoryScannerPlugin;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 
@@ -42,7 +42,7 @@ public class MavenRepositoryScannerTest {
     private static final String VERSION_PREFIX = "1.";
     private static final String PACKAGING = "jar";
 
-    private void buildWhenThenReturn(ArtifactProvider artifactProvider, final ArtifactInfo info) throws ArtifactResolutionException {
+    private void buildWhenThenReturn(ArtifactProvider artifactProvider) throws ArtifactResolutionException {
         doAnswer(new Answer<ArtifactResult>() {
             @Override
             public ArtifactResult answer(InvocationOnMock invocation) throws Throwable {
@@ -77,7 +77,7 @@ public class MavenRepositoryScannerTest {
         when(artifactProvider.getMavenIndex()).thenReturn(mavenIndex);
 
         for (ArtifactInfo artifactInfo : testArtifactInfos) {
-            buildWhenThenReturn(artifactProvider, artifactInfo);
+            buildWhenThenReturn(artifactProvider);
         }
 
         PomModelBuilder pomModelBuilder = mock(EffectiveModelBuilder.class);

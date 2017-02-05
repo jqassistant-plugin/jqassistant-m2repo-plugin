@@ -3,7 +3,7 @@ package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractFileResolver;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenRepositoryDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 
 /**
  * A file resolver strategy for a local maven repository.

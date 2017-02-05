@@ -5,18 +5,18 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 
-import com.buschmais.jqassistant.core.scanner.api.Scanner;
-import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
-import com.buschmais.jqassistant.core.scanner.api.Scope;
-import com.buschmais.jqassistant.core.store.api.Store;
-import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
-import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenRepositoryDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
-
 import org.apache.maven.index.ArtifactInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.buschmais.jqassistant.core.scanner.api.Scanner;
+import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
+import com.buschmais.jqassistant.core.scanner.api.Scope;
+import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
+import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenRepositoryResolver;
+import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 
 /**
  * A scanner for (remote) maven repositories.
@@ -40,24 +40,6 @@ public class MavenRepositoryScannerPlugin
         return MavenScope.REPOSITORY == scope;
     }
 
-    /**
-     * Finds or creates a repository descriptor for the given url.
-     * 
-     * @param store
-     *            the {@link Store}
-     * @param url
-     *            the repository url
-     * @return a {@link MavenRepositoryDescriptor} for the given url.
-     */
-    private MavenRepositoryDescriptor getRepositoryDescriptor(Store store, String url) {
-        MavenRepositoryDescriptor repositoryDescriptor = store.find(MavenRepositoryDescriptor.class, url);
-        if (repositoryDescriptor == null) {
-            repositoryDescriptor = store.create(MavenRepositoryDescriptor.class);
-            repositoryDescriptor.setUrl(url);
-        }
-        return repositoryDescriptor;
-    }
-
     /** {@inheritDoc} */
     @Override
     public void configure() {
@@ -71,7 +53,7 @@ public class MavenRepositoryScannerPlugin
             LOGGER.info("Creating local maven repository directory {}", localDirectory.getAbsolutePath());
             localDirectory.mkdirs();
         }
-        MavenRepositoryDescriptor repoDescriptor = getRepositoryDescriptor(scanner.getContext().getStore(), repositoryUrl.toString());
+        MavenRepositoryDescriptor repoDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
         AetherArtifactProvider artifactProvider = new AetherArtifactProvider(repositoryUrl, repoDescriptor, localDirectory);
         scan(artifactProvider, scanner);
         return repoDescriptor;

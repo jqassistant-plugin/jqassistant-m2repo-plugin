@@ -5,25 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.buschmais.jqassistant.core.scanner.api.Scanner;
-import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
-import com.buschmais.jqassistant.core.scanner.api.Scope;
-import com.buschmais.jqassistant.core.store.api.Store;
-import com.buschmais.jqassistant.core.store.api.model.Descriptor;
-import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
-import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
-import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenRepositoryDescriptor;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
-import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenArtifactHelper;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
-import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
-
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.index.ArtifactInfo;
 import org.apache.maven.index.MAVEN;
@@ -33,6 +14,25 @@ import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.buschmais.jqassistant.core.scanner.api.Scanner;
+import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
+import com.buschmais.jqassistant.core.scanner.api.Scope;
+import com.buschmais.jqassistant.core.store.api.Store;
+import com.buschmais.jqassistant.core.store.api.model.Descriptor;
+import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
+import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
+import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
+import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor;
+import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
+import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenArtifactHelper;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
+import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 
 /**
  * A plugin for (remote) maven artifacts.
