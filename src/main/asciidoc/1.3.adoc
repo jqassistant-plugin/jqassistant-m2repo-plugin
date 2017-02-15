@@ -1,3 +1,4 @@
-== jQAssistant M2 Repository Plugin Version 1.3
+ifndef::jqa-in-manual[== Version 1.3]
+ifdef::jqa-in-manual[== M2 Repository Plugin 1.3]
 
 - TBW
