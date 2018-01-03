@@ -1,8 +1,6 @@
 package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
-import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactFilter;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -10,7 +8,9 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.junit.Test;
 
-import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactFilter;
+import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class ArtifactFilterTest {
 

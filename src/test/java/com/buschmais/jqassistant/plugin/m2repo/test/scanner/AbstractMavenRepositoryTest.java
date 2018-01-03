@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 
+import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
+import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
+
 import org.apache.commons.io.FileUtils;
 import org.javastack.httpd.HttpServer;
 import org.junit.After;
 import org.junit.Before;
-
-import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
-import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 
 public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
 
