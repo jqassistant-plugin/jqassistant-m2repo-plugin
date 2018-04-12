@@ -50,33 +50,6 @@
         <mavenIndexerVersion>5.1.2-816025a</mavenIndexerVersion>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <shadedArtifactAttached>false</shadedArtifactAttached>
-                    <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
-                    <createDependencyReducedPom>true</createDependencyReducedPom>
-                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
-                    <artifactSet>
-                        <includes>
-                            <include>org.apache.lucene:*</include>
-                        </includes>
-                    </artifactSet>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
