@@ -64,7 +64,12 @@ public class MavenRepositoryScannerTest {
     private List<ArtifactInfo> getTestArtifactInfos() {
         List<ArtifactInfo> infos = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            ArtifactInfo artifactInfo = new ArtifactInfo(REPOSITORY, GROUP_ID, ARTIFACT_ID, VERSION_PREFIX + i, null);
+            ArtifactInfo artifactInfo = new ArtifactInfo();
+            artifactInfo.setFieldValue(MAVEN.REPOSITORY_ID, REPOSITORY);
+            artifactInfo.setFieldValue(MAVEN.GROUP_ID, GROUP_ID);
+            artifactInfo.setFieldValue(MAVEN.ARTIFACT_ID, ARTIFACT_ID);
+            artifactInfo.setFieldValue(MAVEN.VERSION, VERSION_PREFIX + i);
+            artifactInfo.setFieldValue(MAVEN.CLASSIFIER, null);
             artifactInfo.setFieldValue(MAVEN.PACKAGING, PACKAGING);
             infos.add(artifactInfo);
         }
