@@ -1,0 +1,5 @@
+ifndef::jqa-in-manual[== Version 1.5]
+ifdef::jqa-in-manual[== M2 Repository Plugin 1.5]
+
+No Changes.
+
