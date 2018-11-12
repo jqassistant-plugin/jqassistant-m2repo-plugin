@@ -15,6 +15,7 @@ import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.artifact.AetherArtifactCoordinates;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenArtifactHelper;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor;
@@ -182,7 +183,7 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
     private MavenPomXmlDescriptor findModel(MavenRepositoryDescriptor repositoryDescriptor, Artifact resolvedModelArtifact) {
         Artifact resolvedMainArtifact = new DefaultArtifact(resolvedModelArtifact.getGroupId(), resolvedModelArtifact.getArtifactId(),
                 resolvedModelArtifact.getExtension(), resolvedModelArtifact.getVersion());
-        String coordinates = MavenArtifactHelper.getId(new ArtifactCoordinates(resolvedMainArtifact));
+        String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(resolvedMainArtifact));
         return repositoryDescriptor.findModel(coordinates);
     }
 
