@@ -10,8 +10,8 @@ import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 
 import org.apache.commons.io.FileUtils;
 import org.javastack.httpd.HttpServer;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
 
@@ -25,7 +25,7 @@ public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
 
     private HttpServer httpServer;
 
-    @Before
+    @BeforeEach
     public void createRepo() throws IOException {
         localRepositoryDirectory = Files.createTempDirectory("m2repo").toFile();
         localRepositoryDirectory.mkdirs();
@@ -58,7 +58,7 @@ public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
      *
      * @throws IOException
      */
-    @After
+    @AfterEach
     public void stopServer() throws IOException {
         if (httpServer != null) {
             httpServer.stop();
@@ -72,7 +72,7 @@ public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
      *
      * @throws IOException
      */
-    @After
+    @AfterEach
     public void clearLocalRepo() throws IOException {
         if (localRepositoryDirectory.exists()) {
             FileUtils.deleteDirectory(localRepositoryDirectory);
