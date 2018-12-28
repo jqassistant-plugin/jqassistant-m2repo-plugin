@@ -18,8 +18,8 @@ public interface MavenSnapshotDescriptor extends MavenDescriptor {
      * @return the last modified date as String.
      */
     @Property("lastModified")
-    long getLastModified();
+    Long getLastModified();
 
-    void setLastModified(long lastModified);
+    void setLastModified(Long lastModified);
 
 }

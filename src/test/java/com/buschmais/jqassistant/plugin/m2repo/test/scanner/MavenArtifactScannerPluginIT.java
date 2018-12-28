@@ -56,7 +56,9 @@ public class MavenArtifactScannerPluginIT extends AbstractMavenRepositoryTest {
             assertThat(repositoryDescriptor, not(nullValue()));
             assertThat(repositoryDescriptor.getContainedModels(), hasSize(1));
         } finally {
-            store.commitTransaction();
+            if (store.hasActiveTransaction()) {
+                store.rollbackTransaction();
+            }
             stopServer();
         }
     }

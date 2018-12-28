@@ -47,7 +47,7 @@
         <aetherVersion>1.1.0</aetherVersion>
         <mavenVersion>3.2.5</mavenVersion>
         <wagonVersion>2.10</wagonVersion>
-        <mavenIndexerVersion>5.1.2-816025a</mavenIndexerVersion>
+        <mavenIndexerVersion>6.0.0</mavenIndexerVersion>
     </properties>
 
     <dependencies>

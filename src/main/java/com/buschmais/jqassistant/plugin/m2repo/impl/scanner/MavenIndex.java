@@ -9,12 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.lucene.search.Query;
-import org.apache.maven.index.ArtifactInfo;
-import org.apache.maven.index.ArtifactInfoFilter;
-import org.apache.maven.index.Field;
-import org.apache.maven.index.Indexer;
-import org.apache.maven.index.IteratorSearchRequest;
-import org.apache.maven.index.MAVEN;
+import org.apache.maven.index.*;
 import org.apache.maven.index.context.ExistingLuceneIndexMismatchException;
 import org.apache.maven.index.context.IndexCreator;
 import org.apache.maven.index.context.IndexingContext;
@@ -33,9 +28,7 @@ import org.apache.maven.wagon.authentication.AuthenticationInfo;
 import org.apache.maven.wagon.events.TransferEvent;
 import org.apache.maven.wagon.events.TransferListener;
 import org.apache.maven.wagon.observers.AbstractTransferListener;
-import org.codehaus.plexus.DefaultPlexusContainer;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.PlexusContainerException;
+import org.codehaus.plexus.*;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,12 +87,13 @@ public class MavenIndex {
      * @throws IllegalArgumentException
      * @throws IOException
      */
-    private void createIndexingContext(URL repoUrl, File repositoryDirectory, File indexDirectory) throws PlexusContainerException,
-            ComponentLookupException, ExistingLuceneIndexMismatchException, IllegalArgumentException, IOException {
-        plexusContainer = new DefaultPlexusContainer();
+    private void createIndexingContext(URL repoUrl, File repositoryDirectory, File indexDirectory)
+            throws PlexusContainerException, ComponentLookupException, ExistingLuceneIndexMismatchException, IllegalArgumentException, IOException {
+        DefaultContainerConfiguration config = new DefaultContainerConfiguration();
+        config.setClassPathScanning( PlexusConstants.SCANNING_INDEX );
+        plexusContainer = new DefaultPlexusContainer(config);
         indexer = plexusContainer.lookup(Indexer.class);
-        // Files where local cache is (if any) and Lucene Index should be
-        // located
+        // Files where local cache is (if any) and Lucene Index should be located
         String repoSuffix = repoUrl.getHost();
         File localIndexDir = new File(indexDirectory, "repo-index");
         // Creators we want to use (search for fields it defines)
@@ -110,9 +104,8 @@ public class MavenIndex {
         indexers.add(plexusContainer.lookup(IndexCreator.class, MavenArchetypeArtifactInfoIndexCreator.ID));
 
         // Create context for central repository index
-        indexingContext =
-                indexer.createIndexingContext("jqa-cxt-" + repoSuffix, "jqa-repo-id-" + repoSuffix, repositoryDirectory, localIndexDir, repoUrl
-                        .toString(), null, true, true, indexers);
+        indexingContext = indexer.createIndexingContext("jqa-cxt-" + repoSuffix, "jqa-repo-id-" + repoSuffix, repositoryDirectory, localIndexDir,
+                repoUrl.toString(), null, true, true, indexers);
     }
 
     public void closeCurrentIndexingContext() throws IOException {
@@ -127,7 +120,7 @@ public class MavenIndex {
 
             @Override
             public boolean accepts(IndexingContext ctx, ArtifactInfo ai) {
-                return startDateMillis < ai.lastModified;
+                return startDateMillis < ai.getLastModified();
             }
         });
         return indexer.searchIterator(request);
@@ -199,8 +192,7 @@ public class MavenIndex {
         } else if (updateResult.getTimestamp() == null) {
             LOGGER.debug("No update needed, index is up to date!");
         } else {
-            LOGGER.debug("Received an incremental update, change covered " + lastUpdateLocalRepo + " - " + updateResult.getTimestamp()
-                    + " period.");
+            LOGGER.debug("Received an incremental update, change covered " + lastUpdateLocalRepo + " - " + updateResult.getTimestamp() + " period.");
         }
     }
 

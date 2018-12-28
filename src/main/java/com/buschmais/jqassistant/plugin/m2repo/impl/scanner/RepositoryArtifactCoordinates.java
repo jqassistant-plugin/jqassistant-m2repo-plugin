@@ -13,9 +13,9 @@ public class RepositoryArtifactCoordinates implements Coordinates {
 
     private Artifact artifact;
 
-    private long lastModified;
+    private Long lastModified;
 
-    public RepositoryArtifactCoordinates(Artifact artifact, long lastModified) {
+    public RepositoryArtifactCoordinates(Artifact artifact, Long lastModified) {
         this.artifact = artifact;
         this.lastModified = lastModified;
     }
@@ -42,7 +42,7 @@ public class RepositoryArtifactCoordinates implements Coordinates {
 
     @Override
     public String getVersion() {
-        if (artifact.isSnapshot()) {
+        if (artifact.isSnapshot() && lastModified != null) {
             String timeStamp = new SimpleDateFormat(DATEFORMAT_TIMESTAMP_SNAPSHOT).format(new Date(lastModified));
             return artifact.getBaseVersion() + "-" + timeStamp;
         } else {
