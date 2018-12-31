@@ -57,7 +57,6 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      */
     @Override
     protected void configure() {
-        super.configure();
         scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, true);
         keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
 
@@ -101,9 +100,8 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      *            the {@link AetherArtifactProvider}
      * @param artifactInfo
      *            informations about the searches artifact
-     * @throws IOException
      */
-    private MavenArtifactDescriptor resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactInfo artifactInfo) throws IOException {
+    private MavenArtifactDescriptor resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactInfo artifactInfo) {
 
         PomModelBuilder pomModelBuilder = new EffectiveModelBuilder(artifactProvider);
 
@@ -118,7 +116,10 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
         Long lastModified = lastModifiedField != null ? Long.valueOf(lastModifiedField) : null;
         Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
 
-        if (artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
+        if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
+            LOGGER.info("Skipping '{}'.", artifactInfo);
+        } else {
+            LOGGER.info("Scanning '{}'.", artifactInfo);
             try {
                 DefaultArtifact defaultArtifact = new DefaultArtifact(groupId, artifactId, null, "pom", version);
                 ArtifactResult modelArtifactResult = artifactProvider.getArtifact(defaultArtifact);

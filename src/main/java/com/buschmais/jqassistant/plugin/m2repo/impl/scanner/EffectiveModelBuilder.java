@@ -13,7 +13,6 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.RawModelBuilder;
 
 import org.apache.maven.model.*;
 import org.apache.maven.model.building.*;
-import org.apache.maven.model.resolution.InvalidRepositoryException;
 import org.apache.maven.model.resolution.ModelResolver;
 import org.apache.maven.model.resolution.UnresolvableModelException;
 import org.apache.maven.model.validation.ModelValidator;
@@ -58,9 +57,10 @@ public class EffectiveModelBuilder implements PomModelBuilder {
         try {
             return builder.build(req).getEffectiveModel();
         } catch (ModelBuildingException e) {
-            LOGGER.warn("Cannot build effective model for " + pomFile.getAbsolutePath(), e);
-            return new EffectiveModel(rawModelBuilder.getModel(pomFile));
+            LOGGER.debug("Cannot build effective model for " + pomFile.getAbsolutePath(), e);
         }
+        LOGGER.warn("Using raw model for " + pomFile.getAbsolutePath());
+        return new EffectiveModel(rawModelBuilder.getModel(pomFile));
     }
 
     /*
@@ -81,8 +81,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
         }
 
         /**
-         * Clear a relevant fields contained in the
-         * {@link ModelProblemCollector} to suppress errors.
+         * Clear a relevant fields contained in the {@link ModelProblemCollector} to suppress errors.
          * 
          * @param problems
          *            The problems.
@@ -143,11 +142,16 @@ public class EffectiveModelBuilder implements PomModelBuilder {
         }
 
         @Override
-        public void addRepository(Repository repository) throws InvalidRepositoryException {
+        public ModelSource resolveModel(Dependency dependency) throws UnresolvableModelException {
+            return resolveModel(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
         }
 
         @Override
-        public void addRepository(Repository repository, boolean replace) throws InvalidRepositoryException {
+        public void addRepository(Repository repository) {
+        }
+
+        @Override
+        public void addRepository(Repository repository, boolean replace) {
         }
 
         @Override

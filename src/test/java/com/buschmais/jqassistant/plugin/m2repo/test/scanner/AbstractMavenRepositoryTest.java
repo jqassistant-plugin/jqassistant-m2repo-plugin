@@ -2,7 +2,6 @@ package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Map;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
@@ -26,8 +25,8 @@ public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
     private HttpServer httpServer;
 
     @BeforeEach
-    public void createRepo() throws IOException {
-        localRepositoryDirectory = Files.createTempDirectory("m2repo").toFile();
+    public void createRepo() {
+        localRepositoryDirectory = new File("target/m2repo");
         localRepositoryDirectory.mkdirs();
     }
 

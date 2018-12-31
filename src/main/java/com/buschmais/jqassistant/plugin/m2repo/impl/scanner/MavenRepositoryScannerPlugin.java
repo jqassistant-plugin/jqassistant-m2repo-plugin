@@ -36,7 +36,7 @@ public class MavenRepositoryScannerPlugin
 
     /** {@inheritDoc} */
     @Override
-    public boolean accepts(URL item, String path, Scope scope) throws IOException {
+    public boolean accepts(URL item, String path, Scope scope) {
         return MavenScope.REPOSITORY == scope;
     }
 
@@ -78,6 +78,7 @@ public class MavenRepositoryScannerPlugin
             artifactsSince = lastScanTime;
         }
         mavenIndex.updateIndex();
+        LOGGER.info("Starting artifact scan.");
         // Search artifacts
         ScannerContext context = scanner.getContext();
         context.push(ArtifactProvider.class, artifactProvider);
@@ -91,5 +92,6 @@ public class MavenRepositoryScannerPlugin
         }
         mavenIndex.closeCurrentIndexingContext();
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
+        LOGGER.info("Finished artifact scan.");
     }
 }

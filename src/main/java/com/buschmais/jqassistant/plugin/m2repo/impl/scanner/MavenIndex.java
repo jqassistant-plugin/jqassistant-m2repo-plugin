@@ -18,11 +18,7 @@ import org.apache.maven.index.creator.MavenArchetypeArtifactInfoIndexCreator;
 import org.apache.maven.index.creator.MavenPluginArtifactInfoIndexCreator;
 import org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator;
 import org.apache.maven.index.expr.SourcedSearchExpression;
-import org.apache.maven.index.updater.IndexUpdateRequest;
-import org.apache.maven.index.updater.IndexUpdateResult;
-import org.apache.maven.index.updater.IndexUpdater;
-import org.apache.maven.index.updater.ResourceFetcher;
-import org.apache.maven.index.updater.WagonHelper;
+import org.apache.maven.index.updater.*;
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.authentication.AuthenticationInfo;
 import org.apache.maven.wagon.events.TransferEvent;
@@ -81,7 +77,6 @@ public class MavenIndex {
      *            the URL of the remote Repository.
      * @param indexDirectory
      *            the dir for local index data
-     * @throws PlexusContainerException
      * @throws ComponentLookupException
      * @throws ExistingLuceneIndexMismatchException
      * @throws IllegalArgumentException
@@ -90,18 +85,18 @@ public class MavenIndex {
     private void createIndexingContext(URL repoUrl, File repositoryDirectory, File indexDirectory)
             throws PlexusContainerException, ComponentLookupException, ExistingLuceneIndexMismatchException, IllegalArgumentException, IOException {
         DefaultContainerConfiguration config = new DefaultContainerConfiguration();
-        config.setClassPathScanning( PlexusConstants.SCANNING_INDEX );
+        config.setClassPathScanning(PlexusConstants.SCANNING_INDEX);
         plexusContainer = new DefaultPlexusContainer(config);
-        indexer = plexusContainer.lookup(Indexer.class);
+        indexer = plexusContainer.lookup(DefaultIndexer.class);
         // Files where local cache is (if any) and Lucene Index should be located
         String repoSuffix = repoUrl.getHost();
         File localIndexDir = new File(indexDirectory, "repo-index");
         // Creators we want to use (search for fields it defines)
         List<IndexCreator> indexers = new ArrayList<>();
-        indexers.add(plexusContainer.lookup(IndexCreator.class, MinimalArtifactInfoIndexCreator.ID));
-        indexers.add(plexusContainer.lookup(IndexCreator.class, JarFileContentsIndexCreator.ID));
-        indexers.add(plexusContainer.lookup(IndexCreator.class, MavenPluginArtifactInfoIndexCreator.ID));
-        indexers.add(plexusContainer.lookup(IndexCreator.class, MavenArchetypeArtifactInfoIndexCreator.ID));
+        indexers.add(plexusContainer.lookup(MinimalArtifactInfoIndexCreator.class));
+        indexers.add(plexusContainer.lookup(JarFileContentsIndexCreator.class));
+        indexers.add(plexusContainer.lookup(MavenPluginArtifactInfoIndexCreator.class));
+        indexers.add(plexusContainer.lookup(MavenArchetypeArtifactInfoIndexCreator.class));
 
         // Create context for central repository index
         indexingContext = indexer.createIndexingContext("jqa-cxt-" + repoSuffix, "jqa-repo-id-" + repoSuffix, repositoryDirectory, localIndexDir,
@@ -116,13 +111,8 @@ public class MavenIndex {
         final long startDateMillis = startDate.getTime();
         // find only maven artifact documents
         Query query = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression(Field.NOT_PRESENT));
-        IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(indexingContext), new ArtifactInfoFilter() {
-
-            @Override
-            public boolean accepts(IndexingContext ctx, ArtifactInfo ai) {
-                return startDateMillis < ai.getLastModified();
-            }
-        });
+        IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(indexingContext),
+                (ctx, ai) -> startDateMillis < ai.getLastModified());
         return indexer.searchIterator(request);
     }
 
@@ -154,13 +144,13 @@ public class MavenIndex {
         IndexUpdater indexUpdater;
         Wagon httpWagon;
         try {
-            indexUpdater = plexusContainer.lookup(IndexUpdater.class);
+            indexUpdater = plexusContainer.lookup(DefaultIndexUpdater.class);
             httpWagon = plexusContainer.lookup(Wagon.class, "http");
         } catch (ComponentLookupException e) {
             throw new IOException(e);
         }
 
-        LOGGER.info("Updating repository index...");
+        LOGGER.info("Updating repository index (this may take a while).");
         TransferListener listener = new AbstractTransferListener() {
             @Override
             public void transferCompleted(TransferEvent transferEvent) {
@@ -188,11 +178,11 @@ public class MavenIndex {
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(indexingContext, resourceFetcher);
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
         if (updateResult.isFullUpdate()) {
-            LOGGER.debug("Received a full update.");
+            LOGGER.info("Received a full update.");
         } else if (updateResult.getTimestamp() == null) {
-            LOGGER.debug("No update needed, index is up to date!");
+            LOGGER.info("No update needed, index is up to date.");
         } else {
-            LOGGER.debug("Received an incremental update, change covered " + lastUpdateLocalRepo + " - " + updateResult.getTimestamp() + " period.");
+            LOGGER.info("Received an incremental update, change covered " + lastUpdateLocalRepo + " - " + updateResult.getTimestamp() + " period.");
         }
     }
 

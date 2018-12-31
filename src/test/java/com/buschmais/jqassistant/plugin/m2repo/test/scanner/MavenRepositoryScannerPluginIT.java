@@ -35,7 +35,9 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryTest 
             assertThat(repositoryDescriptor.getUrl(), equalTo(TEST_REPOSITORY_URL));
             assertThat(repositoryDescriptor.getContainedModels(), hasSize(9));
         } finally {
-            store.commitTransaction();
+            if (store.hasActiveTransaction()) {
+                store.commitTransaction();
+            }
             stopServer();
         }
     }
@@ -57,7 +59,9 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryTest 
                     .get("nodes", Long.class);
             assertThat("Number of 'POM' nodes is wrong.", countArtifactNodes, equalTo(2L));
         } finally {
-            store.commitTransaction();
+            if (store.hasActiveTransaction()) {
+                store.commitTransaction();
+            }
             stopServer();
         }
     }
