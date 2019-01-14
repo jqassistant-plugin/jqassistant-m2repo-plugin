@@ -47,6 +47,7 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
     private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
     private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
     private static final String PROPERTY_NAME_FILTER_EXCLUDES = "m2repo.filter.excludes";
+    private static final String EXTENSION_POM = "pom";
 
     private boolean keepArtifacts;
     private boolean scanArtifacts;
@@ -69,7 +70,7 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      * {@inheritDoc}
      */
     @Override
-    public boolean accepts(ArtifactInfo item, String path, Scope scope) throws IOException {
+    public boolean accepts(ArtifactInfo item, String path, Scope scope) {
         return item != null && MavenScope.REPOSITORY.equals(scope);
     }
 
@@ -77,7 +78,7 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      * {@inheritDoc}
      */
     @Override
-    public MavenArtifactDescriptor scan(ArtifactInfo item, String path, Scope scope, Scanner scanner) throws IOException {
+    public MavenArtifactDescriptor scan(ArtifactInfo item, String path, Scope scope, Scanner scanner) {
         ArtifactProvider artifactProvider = scanner.getContext().peek(ArtifactProvider.class);
         // register file resolver strategy to identify repository artifacts
         scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
@@ -102,8 +103,7 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      *            informations about the searches artifact
      */
     private MavenArtifactDescriptor resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactInfo artifactInfo) {
-
-        PomModelBuilder pomModelBuilder = new EffectiveModelBuilder(artifactProvider);
+        PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
 
         ScannerContext context = scanner.getContext();
         Store store = context.getStore();
@@ -121,36 +121,24 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
         } else {
             LOGGER.info("Scanning '{}'.", artifactInfo);
             try {
-                DefaultArtifact defaultArtifact = new DefaultArtifact(groupId, artifactId, null, "pom", version);
-                ArtifactResult modelArtifactResult = artifactProvider.getArtifact(defaultArtifact);
-                Artifact resolvedModelArtifact = modelArtifactResult.getArtifact();
                 MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
+                DefaultArtifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
+                ArtifactResult modelArtifactResult = artifactProvider.getArtifact(modelArtifact);
+                Artifact resolvedModelArtifact = modelArtifactResult.getArtifact();
                 MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
                 if (modelDescriptor == null) {
-                    File modelArtifactFile = resolvedModelArtifact.getFile();
-                    context.push(PomModelBuilder.class, pomModelBuilder);
+                    context.push(PomModelBuilder.class, effectiveModelBuilder);
                     try {
-                        modelDescriptor = scanner.scan(modelArtifactFile, modelArtifactFile.getAbsolutePath(), null);
+                        modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
                     } finally {
                         context.pop(PomModelBuilder.class);
-                        if (!keepArtifacts) {
-                            modelArtifactFile.delete();
-                        }
                     }
                     modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
                     repositoryDescriptor.getContainedModels().add(modelDescriptor);
                 }
-                if (scanArtifacts && !artifact.getExtension().equals("pom")) {
+                if (scanArtifacts && !artifact.getExtension().equals(EXTENSION_POM)) {
                     ArtifactResult artifactResult = artifactProvider.getArtifact(artifact);
-                    File artifactFile = artifactResult.getArtifact().getFile();
-                    Descriptor descriptor;
-                    try {
-                        descriptor = scanner.scan(artifactFile, artifactFile.getAbsolutePath(), null);
-                    } finally {
-                        if (!keepArtifacts) {
-                            artifactFile.delete();
-                        }
-                    }
+                    Descriptor descriptor = scanArtifactFile(artifactResult.getArtifact(), scanner);
                     MavenArtifactDescriptor descriptorToAdd = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
                     MavenArtifactDescriptor mavenArtifactDescriptor = markReleaseOrSnaphot(descriptorToAdd, MavenArtifactDescriptor.class, artifact,
                             lastModified, store);
@@ -161,10 +149,32 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
                     return mavenArtifactDescriptor;
                 }
             } catch (ArtifactResolutionException e) {
-                LOGGER.warn(e.getMessage());
+                LOGGER.warn("Could not resolve artifact '" + artifactInfo + "'.", e);
             }
         }
         return null;
+    }
+
+    /**
+     * Scans the given {@link Artifact}.
+     * 
+     * @param artifact
+     *            The {@link Artifact}.
+     * @param scanner
+     *            The scanner.
+     * @param <D>
+     *            The expected {@link Descriptor} type.
+     * @return The {@link Descriptor}.
+     */
+    private <D extends  Descriptor> D scanArtifactFile(Artifact artifact, Scanner scanner) {
+        File artifactFile = artifact.getFile();
+        try {
+            return scanner.scan(artifactFile, artifactFile.getAbsolutePath(), null);
+        } finally {
+            if (!keepArtifacts) {
+                artifactFile.delete();
+            }
+        }
     }
 
     /**
