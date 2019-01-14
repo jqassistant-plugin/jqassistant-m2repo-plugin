@@ -77,15 +77,13 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      * {@inheritDoc}
      */
     @Override
-    public MavenRepositoryDescriptor scan(ArtifactSearchResult item, String path, Scope scope, Scanner scanner) {
+    public MavenRepositoryDescriptor scan(ArtifactSearchResult artifactSearchResult, String path, Scope scope, Scanner scanner) {
         ArtifactProvider artifactProvider = scanner.getContext().peek(ArtifactProvider.class);
         // register file resolver strategy to identify repository artifacts
         scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
         scanner.getContext().push(ArtifactResolver.class, artifactProvider.getArtifactResolver());
         try {
-            for (ArtifactInfo artifactInfo : item) {
-                resolveAndScan(scanner, artifactProvider, artifactInfo);
-            }
+            resolveAndScan(scanner, artifactProvider, artifactSearchResult);
         } finally {
             scanner.getContext().pop(ArtifactResolver.class);
             scanner.getContext().pop(FileResolver.class);
@@ -101,57 +99,62 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *            the {@link Scanner}
      * @param artifactProvider
      *            the {@link AetherArtifactProvider}
-     * @param artifactInfo
-     *            informations about the searches artifact
+     * @param artifactSearchResult 
+     *            the {@link ArtifactSearchResult}
      */
-    private void resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactInfo artifactInfo) {
-        PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
-
+    private void resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactSearchResult artifactSearchResult) {
         ScannerContext context = scanner.getContext();
         Store store = context.getStore();
-        String groupId = artifactInfo.getFieldValue(MAVEN.GROUP_ID);
-        String artifactId = artifactInfo.getFieldValue(MAVEN.ARTIFACT_ID);
-        String classifier = artifactInfo.getFieldValue(MAVEN.CLASSIFIER);
-        String packaging = artifactInfo.getFieldValue(MAVEN.PACKAGING);
-        String version = artifactInfo.getFieldValue(MAVEN.VERSION);
-        String lastModifiedField = artifactInfo.getFieldValue(MAVEN.LAST_MODIFIED);
-        Long lastModified = lastModifiedField != null ? Long.valueOf(lastModifiedField) : null;
-        Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
+        PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
+        MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
 
-        if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
-            LOGGER.info("Skipping '{}'.", artifactInfo);
-        } else {
-            LOGGER.info("Scanning '{}'.", artifactInfo);
-            try {
-                MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
-                DefaultArtifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
-                ArtifactResult modelArtifactResult = artifactProvider.getArtifact(modelArtifact);
-                Artifact resolvedModelArtifact = modelArtifactResult.getArtifact();
-                MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
-                if (modelDescriptor == null) {
-                    context.push(PomModelBuilder.class, effectiveModelBuilder);
-                    try {
-                        modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
-                    } finally {
-                        context.pop(PomModelBuilder.class);
+        for (ArtifactInfo artifactInfo : artifactSearchResult) {
+            String groupId = artifactInfo.getFieldValue(MAVEN.GROUP_ID);
+            String artifactId = artifactInfo.getFieldValue(MAVEN.ARTIFACT_ID);
+            String classifier = artifactInfo.getFieldValue(MAVEN.CLASSIFIER);
+            String packaging = artifactInfo.getFieldValue(MAVEN.PACKAGING);
+            String version = artifactInfo.getFieldValue(MAVEN.VERSION);
+            String lastModifiedField = artifactInfo.getFieldValue(MAVEN.LAST_MODIFIED);
+            Long lastModified = lastModifiedField != null ? Long.valueOf(lastModifiedField) : null;
+            Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
+
+            if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
+                LOGGER.info("Skipping '{}'.", artifactInfo);
+            } else {
+                LOGGER.info("Scanning '{}'.", artifactInfo);
+                try {
+
+                    DefaultArtifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
+                    ArtifactResult modelArtifactResult = artifactProvider.getArtifact(modelArtifact);
+                    Artifact resolvedModelArtifact = modelArtifactResult.getArtifact();
+                    MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
+                    if (modelDescriptor == null) {
+                        context.push(PomModelBuilder.class, effectiveModelBuilder);
+                        try {
+                            modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
+                        } finally {
+                            context.pop(PomModelBuilder.class);
+                        }
+                        modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
+                        repositoryDescriptor.getContainedModels().add(modelDescriptor);
                     }
-                    modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
-                    repositoryDescriptor.getContainedModels().add(modelDescriptor);
+
+                    if (scanArtifacts && !artifact.getExtension().equals(EXTENSION_POM)) {
+                        ArtifactResult artifactResult = artifactProvider.getArtifact(artifact);
+                        Descriptor descriptor = scanArtifactFile(artifactResult.getArtifact(), scanner);
+                        MavenArtifactDescriptor descriptorToAdd = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
+                        MavenArtifactDescriptor mavenArtifactDescriptor = markReleaseOrSnaphot(descriptorToAdd, MavenArtifactDescriptor.class, artifact,
+                                lastModified, store);
+                        MavenArtifactHelper.setId(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
+                        MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
+                        modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
+                        repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
+                    }
+                } catch (ArtifactResolutionException e) {
+                    LOGGER.warn("Could not resolve artifact '" + artifactInfo + "'.", e);
                 }
-                if (scanArtifacts && !artifact.getExtension().equals(EXTENSION_POM)) {
-                    ArtifactResult artifactResult = artifactProvider.getArtifact(artifact);
-                    Descriptor descriptor = scanArtifactFile(artifactResult.getArtifact(), scanner);
-                    MavenArtifactDescriptor descriptorToAdd = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
-                    MavenArtifactDescriptor mavenArtifactDescriptor = markReleaseOrSnaphot(descriptorToAdd, MavenArtifactDescriptor.class, artifact,
-                            lastModified, store);
-                    MavenArtifactHelper.setId(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
-                    MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
-                    modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
-                    repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
-                }
-            } catch (ArtifactResolutionException e) {
-                LOGGER.warn("Could not resolve artifact '" + artifactInfo + "'.", e);
             }
+
         }
     }
 
@@ -166,7 +169,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *            The expected {@link Descriptor} type.
      * @return The {@link Descriptor}.
      */
-    private <D extends  Descriptor> D scanArtifactFile(Artifact artifact, Scanner scanner) {
+    private <D extends Descriptor> D scanArtifactFile(Artifact artifact, Scanner scanner) {
         File artifactFile = artifact.getFile();
         try {
             return scanner.scan(artifactFile, artifactFile.getAbsolutePath(), null);
