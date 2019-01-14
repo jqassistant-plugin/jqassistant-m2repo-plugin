@@ -69,28 +69,28 @@ public class MavenRepositoryScannerPlugin
      */
     public void scan(AetherArtifactProvider artifactProvider, Scanner scanner) throws IOException {
         // the MavenRepositoryDescriptor
-        MavenIndex mavenIndex = artifactProvider.getMavenIndex();
-        Date lastIndexUpdateTime = mavenIndex.getLastUpdateLocalRepo();
         MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
-        Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
-        Date artifactsSince = lastIndexUpdateTime;
-        if (lastIndexUpdateTime == null || lastIndexUpdateTime.after(lastScanTime)) {
-            artifactsSince = lastScanTime;
-        }
-        mavenIndex.updateIndex();
-        LOGGER.info("Starting artifact scan.");
-        // Search artifacts
-        ScannerContext context = scanner.getContext();
-        context.push(ArtifactProvider.class, artifactProvider);
-        try {
-            Iterable<ArtifactInfo> searchResponse = mavenIndex.getArtifactsSince(artifactsSince);
-            for (ArtifactInfo ai : searchResponse) {
-                scanner.scan(ai, ai.toString(), MavenScope.REPOSITORY);
+        try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
+            Date lastIndexUpdateTime = mavenIndex.getLastUpdateLocalRepo();
+            Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
+            Date artifactsSince = lastIndexUpdateTime;
+            if (lastIndexUpdateTime == null || lastIndexUpdateTime.after(lastScanTime)) {
+                artifactsSince = lastScanTime;
             }
-        } finally {
-            context.pop(ArtifactProvider.class);
+            mavenIndex.updateIndex();
+            LOGGER.info("Starting artifact scan.");
+            // Search artifacts
+            ScannerContext context = scanner.getContext();
+            context.push(ArtifactProvider.class, artifactProvider);
+            try {
+                Iterable<ArtifactInfo> searchResponse = mavenIndex.getArtifactsSince(artifactsSince);
+                for (ArtifactInfo ai : searchResponse) {
+                    scanner.scan(ai, ai.toString(), MavenScope.REPOSITORY);
+                }
+            } finally {
+                context.pop(ArtifactProvider.class);
+            }
         }
-        mavenIndex.closeCurrentIndexingContext();
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
         LOGGER.info("Finished artifact scan.");
     }

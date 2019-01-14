@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author pherklotz
  */
-public class MavenIndex {
+public class MavenIndex implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenIndex.class);
 
@@ -103,7 +103,7 @@ public class MavenIndex {
                 repoUrl.toString(), null, true, true, indexers);
     }
 
-    public void closeCurrentIndexingContext() throws IOException {
+    public void close() throws IOException {
         indexer.closeIndexingContext(indexingContext, false);
     }
 
@@ -117,21 +117,12 @@ public class MavenIndex {
     }
 
     /**
-     * Returns the actual {@link IndexingContext}.
-     * 
-     * @return {@link IndexingContext}.
-     */
-    public IndexingContext getIndexingContext() {
-        return indexingContext;
-    }
-
-    /**
      * Returns a timestamp of the last local repository index update.
      * 
      * @return A timestamp of the last local repository index update.
      */
     public Date getLastUpdateLocalRepo() {
-        return getIndexingContext().getTimestamp();
+        return indexingContext.getTimestamp();
     }
 
     /**
