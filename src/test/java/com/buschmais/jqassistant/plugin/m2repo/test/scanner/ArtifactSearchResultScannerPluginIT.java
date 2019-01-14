@@ -2,11 +2,13 @@ package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvider;
+import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResult;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
@@ -22,7 +24,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
-public class MavenArtifactScannerPluginIT extends AbstractMavenRepositoryTest {
+public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepositoryTest {
 
     @Test
     public void testMavenRepoScanner() throws IOException {
@@ -44,7 +46,7 @@ public class MavenArtifactScannerPluginIT extends AbstractMavenRepositoryTest {
             context.push(ArtifactProvider.class, provider);
             context.push(ArtifactResolver.class, new MavenArtifactResolver());
             repoDescriptor.setUrl(TEST_REPOSITORY_URL);
-            scanner.scan(info, info.toString(), MavenScope.REPOSITORY);
+            scanner.scan(new ArtifactSearchResult(Arrays.asList(info)), info.toString(), MavenScope.REPOSITORY);
             context.pop(ArtifactProvider.class);
             context.pop(ArtifactResolver.class);
 

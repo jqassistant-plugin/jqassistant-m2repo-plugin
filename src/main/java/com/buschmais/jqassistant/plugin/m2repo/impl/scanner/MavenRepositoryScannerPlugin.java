@@ -23,8 +23,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author pherklotz
  */
-public class MavenRepositoryScannerPlugin
-        extends AbstractScannerPlugin<URL, MavenRepositoryDescriptor> {
+public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, MavenRepositoryDescriptor> {
 
     public static final String DEFAULT_M2REPO_DIR = "./jqassistant/data/m2repo";
 
@@ -84,9 +83,7 @@ public class MavenRepositoryScannerPlugin
             context.push(ArtifactProvider.class, artifactProvider);
             try {
                 Iterable<ArtifactInfo> searchResponse = mavenIndex.getArtifactsSince(artifactsSince);
-                for (ArtifactInfo ai : searchResponse) {
-                    scanner.scan(ai, ai.toString(), MavenScope.REPOSITORY);
-                }
+                scanner.scan(searchResponse, searchResponse.toString(), MavenScope.REPOSITORY);
             } finally {
                 context.pop(ArtifactProvider.class);
             }

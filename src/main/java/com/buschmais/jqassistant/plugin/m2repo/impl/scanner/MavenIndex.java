@@ -107,13 +107,13 @@ public class MavenIndex implements AutoCloseable {
         indexer.closeIndexingContext(indexingContext, false);
     }
 
-    public Iterable<ArtifactInfo> getArtifactsSince(final Date startDate) throws IOException {
+    public ArtifactSearchResult getArtifactsSince(final Date startDate) throws IOException {
         final long startDateMillis = startDate.getTime();
         // find only maven artifact documents
         Query query = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression(Field.NOT_PRESENT));
         IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(indexingContext),
                 (ctx, ai) -> startDateMillis < ai.getLastModified());
-        return indexer.searchIterator(request);
+        return new ArtifactSearchResult(indexer.searchIterator(request));
     }
 
     /**

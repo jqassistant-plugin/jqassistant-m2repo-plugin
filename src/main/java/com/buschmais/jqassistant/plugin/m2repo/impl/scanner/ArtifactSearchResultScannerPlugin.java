@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author pherklotz
  */
-public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactInfo, MavenArtifactDescriptor> {
+public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<ArtifactSearchResult, MavenRepositoryDescriptor> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenArtifactScannerPlugin.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactSearchResultScannerPlugin.class);
     private static final String PROPERTY_NAME_ARTIFACTS_KEEP = "m2repo.artifacts.keep";
     private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
     private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
@@ -69,25 +69,28 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      * {@inheritDoc}
      */
     @Override
-    public boolean accepts(ArtifactInfo item, String path, Scope scope) {
-        return item != null && MavenScope.REPOSITORY.equals(scope);
+    public boolean accepts(ArtifactSearchResult item, String path, Scope scope) {
+        return MavenScope.REPOSITORY.equals(scope);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public MavenArtifactDescriptor scan(ArtifactInfo item, String path, Scope scope, Scanner scanner) {
+    public MavenRepositoryDescriptor scan(ArtifactSearchResult item, String path, Scope scope, Scanner scanner) {
         ArtifactProvider artifactProvider = scanner.getContext().peek(ArtifactProvider.class);
         // register file resolver strategy to identify repository artifacts
         scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
         scanner.getContext().push(ArtifactResolver.class, artifactProvider.getArtifactResolver());
         try {
-            return resolveAndScan(scanner, artifactProvider, item);
+            for (ArtifactInfo artifactInfo : item) {
+                resolveAndScan(scanner, artifactProvider, artifactInfo);
+            }
         } finally {
             scanner.getContext().pop(ArtifactResolver.class);
             scanner.getContext().pop(FileResolver.class);
         }
+        return artifactProvider.getRepositoryDescriptor();
     }
 
     /**
@@ -101,7 +104,7 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
      * @param artifactInfo
      *            informations about the searches artifact
      */
-    private MavenArtifactDescriptor resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactInfo artifactInfo) {
+    private void resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactInfo artifactInfo) {
         PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
 
         ScannerContext context = scanner.getContext();
@@ -145,13 +148,11 @@ public class MavenArtifactScannerPlugin extends AbstractScannerPlugin<ArtifactIn
                     MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
                     modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                     repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
-                    return mavenArtifactDescriptor;
                 }
             } catch (ArtifactResolutionException e) {
                 LOGGER.warn("Could not resolve artifact '" + artifactInfo + "'.", e);
             }
         }
-        return null;
     }
 
     /**
