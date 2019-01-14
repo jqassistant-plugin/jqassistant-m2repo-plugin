@@ -1,7 +1,6 @@
 package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
