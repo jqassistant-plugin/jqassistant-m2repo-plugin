@@ -1,8 +1,13 @@
 package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
@@ -24,12 +29,8 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescript
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 
-import org.apache.maven.RepositoryUtils;
-import org.apache.maven.index.ArtifactInfo;
-import org.apache.maven.index.MAVEN;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      * {@inheritDoc}
      */
     @Override
-    public MavenRepositoryDescriptor scan(ArtifactSearchResult artifactSearchResult, String path, Scope scope, Scanner scanner) {
+    public MavenRepositoryDescriptor scan(ArtifactSearchResult artifactSearchResult, String path, Scope scope, Scanner scanner) throws IOException {
         ArtifactProvider artifactProvider = scanner.getContext().peek(ArtifactProvider.class);
         // register file resolver strategy to identify repository artifacts
         scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
@@ -99,48 +100,44 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *            the {@link Scanner}
      * @param artifactProvider
      *            the {@link AetherArtifactProvider}
-     * @param artifactSearchResult 
+     * @param artifactSearchResult
      *            the {@link ArtifactSearchResult}
      */
-    private void resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactSearchResult artifactSearchResult) {
+    private void resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactSearchResult artifactSearchResult) throws IOException {
         ScannerContext context = scanner.getContext();
         Store store = context.getStore();
         PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
         MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
 
-        for (ArtifactInfo artifactInfo : artifactSearchResult) {
-            String groupId = artifactInfo.getFieldValue(MAVEN.GROUP_ID);
-            String artifactId = artifactInfo.getFieldValue(MAVEN.ARTIFACT_ID);
-            String classifier = artifactInfo.getFieldValue(MAVEN.CLASSIFIER);
-            String packaging = artifactInfo.getFieldValue(MAVEN.PACKAGING);
-            String version = artifactInfo.getFieldValue(MAVEN.VERSION);
-            String lastModifiedField = artifactInfo.getFieldValue(MAVEN.LAST_MODIFIED);
-            Long lastModified = lastModifiedField != null ? Long.valueOf(lastModifiedField) : null;
-            Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
+        BlockingQueue<ArtifactTask.Result> queue = new LinkedBlockingDeque<>(10);
+        ExecutorService pool = Executors.newFixedThreadPool(1);
+        pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
 
-            if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
-                LOGGER.info("Skipping '{}'.", artifactInfo);
-            } else {
-                LOGGER.info("Scanning '{}'.", artifactInfo);
-                try {
-
-                    DefaultArtifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
-                    ArtifactResult modelArtifactResult = artifactProvider.getArtifact(modelArtifact);
-                    Artifact resolvedModelArtifact = modelArtifactResult.getArtifact();
-                    MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
-                    if (modelDescriptor == null) {
-                        context.push(PomModelBuilder.class, effectiveModelBuilder);
-                        try {
-                            modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
-                        } finally {
-                            context.pop(PomModelBuilder.class);
-                        }
-                        modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
-                        repositoryDescriptor.getContainedModels().add(modelDescriptor);
+        ArtifactTask.Result result;
+        do {
+            try {
+                result = queue.take();
+            } catch (InterruptedException e) {
+                throw new IOException("Interrupted while waiting for artifact result", e);
+            }
+            if (result.getModelArtifactResult() != null) {
+                Artifact resolvedModelArtifact = result.getModelArtifactResult().getArtifact();
+                Long lastModified = result.getLastModified();
+                MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
+                if (modelDescriptor == null) {
+                    context.push(PomModelBuilder.class, effectiveModelBuilder);
+                    try {
+                        modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
+                    } finally {
+                        context.pop(PomModelBuilder.class);
                     }
-
-                    if (scanArtifacts && !artifact.getExtension().equals(EXTENSION_POM)) {
-                        ArtifactResult artifactResult = artifactProvider.getArtifact(artifact);
+                    modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
+                    repositoryDescriptor.getContainedModels().add(modelDescriptor);
+                }
+                if (result.getArtifactResult().isPresent()) {
+                    ArtifactResult artifactResult = result.getArtifactResult().get();
+                    Artifact artifact = artifactResult.getArtifact();
+                    if (!artifact.getExtension().equals(EXTENSION_POM)) {
                         Descriptor descriptor = scanArtifactFile(artifactResult.getArtifact(), scanner);
                         MavenArtifactDescriptor descriptorToAdd = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
                         MavenArtifactDescriptor mavenArtifactDescriptor = markReleaseOrSnaphot(descriptorToAdd, MavenArtifactDescriptor.class, artifact,
@@ -150,12 +147,10 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                         modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                         repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
                     }
-                } catch (ArtifactResolutionException e) {
-                    LOGGER.warn("Could not resolve artifact '" + artifactInfo + "'.", e);
                 }
             }
-
-        }
+        } while (result.getModelArtifactResult() != null);
+        pool.shutdown();
     }
 
     /**
