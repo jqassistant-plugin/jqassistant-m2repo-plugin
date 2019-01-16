@@ -43,12 +43,13 @@ public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepository
 
             MavenRepositoryDescriptor repoDescriptor = store.create(MavenRepositoryDescriptor.class);
             ArtifactProvider provider = new AetherArtifactProvider(new URL(TEST_REPOSITORY_URL), repoDescriptor, localRepositoryDirectory);
-            assertThat(new File(localRepositoryDirectory, "localhost/" + REPO_SERVER_PORT).exists(), equalTo(true));
             ScannerContext context = scanner.getContext();
             context.push(ArtifactProvider.class, provider);
             context.push(ArtifactResolver.class, new MavenArtifactResolver());
             repoDescriptor.setUrl(TEST_REPOSITORY_URL);
             scanner.scan(new ArtifactSearchResult(Arrays.asList(info)), info.toString(), MavenScope.REPOSITORY);
+            assertThat("Expecting a directory for the local Maven repository.", new File(localRepositoryDirectory, "localhost/" + REPO_SERVER_PORT).exists(),
+                    equalTo(true));
             context.pop(ArtifactProvider.class);
             context.pop(ArtifactResolver.class);
 
