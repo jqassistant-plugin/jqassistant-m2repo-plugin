@@ -11,7 +11,6 @@ import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -88,16 +87,37 @@ public class AetherArtifactProvider implements ArtifactProvider {
         if (password != null) {
             authBuilder.addPassword(password);
         }
-        Authentication auth = authBuilder.build();
+        String repositoryId = getRepositoryId(repositoryUrl);
         String url = StringUtils.replace(repositoryUrl.toString(), repositoryUrl.getUserInfo() + "@", StringUtils.EMPTY);
-        String repositoryId = DigestUtils.md5Hex(repositoryUrl.toString());
+        Authentication auth = authBuilder.build();
         repository = new RemoteRepository.Builder(repositoryId, "default", url).setAuthentication(auth).build();
         repositorySystem = newRepositorySystem();
         this.repositoryFileResolver = new MavenRepositoryFileResolver(repositoryDescriptor);
         this.repositoryRoot = new File(workDirectory, repositoryId);
         this.repositoryArtifactResolver = new MavenRepositoryArtifactResolver(repositoryRoot, repositoryFileResolver);
-        LOGGER.debug("Using '{}' for repository URL '{}'", repositoryRoot, repositoryUrl);
+        LOGGER.info("Using '{}' for repository URL '{}'", repositoryRoot, url);
         session = newRepositorySystemSession(repositorySystem, repositoryRoot);
+    }
+
+    /**
+     * Determines the repositoryId from the repository URL.
+     * 
+     * Id format: "host/port/path" (the port segment is optional).
+     * 
+     * @param repositoryUrl
+     *            The repository url.
+     * @return The repositoryId.
+     */
+    private String getRepositoryId(URL repositoryUrl) {
+        String host = repositoryUrl.getHost();
+        int port = repositoryUrl.getPort();
+        String path = repositoryUrl.getPath();
+        StringBuilder repositoryIdBuilder = new StringBuilder(host);
+        if (port != -1) {
+            repositoryIdBuilder.append('/').append(port);
+        }
+        repositoryIdBuilder.append(path);
+        return repositoryIdBuilder.toString();
     }
 
     @Override
@@ -184,5 +204,4 @@ public class AetherArtifactProvider implements ArtifactProvider {
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
         return session;
     }
-
 }

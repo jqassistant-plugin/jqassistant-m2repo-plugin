@@ -27,7 +27,7 @@ public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
     @BeforeEach
     public void createRepo() {
         localRepositoryDirectory = new File("target/m2repo");
-        localRepositoryDirectory.mkdirs();
+        FileUtils.deleteQuietly(localRepositoryDirectory);
     }
 
     protected Map<String, Object> getScannerProperties() {

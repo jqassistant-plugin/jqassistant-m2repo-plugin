@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryTest {
 
     @Test
-    public void testMavenRepoScanner() throws IOException {
+    public void scan() throws IOException {
         try {
             startServer("1");
             store.beginTransaction();
@@ -43,7 +43,7 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryTest 
     }
 
     @Test
-    public void testMavenRepoScannerWithUpdate() throws IOException {
+    public void updateSnapshot() throws IOException {
         try {
             startServer("2");
             store.beginTransaction();

@@ -32,6 +32,8 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A plugin for (remote) maven artifacts.
@@ -39,6 +41,8 @@ import org.eclipse.aether.resolution.ArtifactResult;
  * @author pherklotz
  */
 public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<ArtifactSearchResult, MavenRepositoryDescriptor> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactSearchResultScannerPlugin.class);
 
     private static final String PROPERTY_NAME_ARTIFACTS_KEEP = "m2repo.artifacts.keep";
     private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
@@ -124,6 +128,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                 if (modelDescriptor == null) {
                     context.push(PomModelBuilder.class, effectiveModelBuilder);
                     try {
+                        LOGGER.info("Scanning model '{}'.", resolvedModelArtifact);
                         modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
                     } finally {
                         context.pop(PomModelBuilder.class);
