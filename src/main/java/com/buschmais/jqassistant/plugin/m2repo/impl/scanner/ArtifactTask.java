@@ -26,6 +26,8 @@ public class ArtifactTask implements Runnable {
      */
     public static class Result {
 
+        public static final Result LAST = new Result(null, null, null);
+
         private final ArtifactResult modelArtifactResult;
 
         private final Optional<ArtifactResult> artifactResult;
@@ -65,9 +67,24 @@ public class ArtifactTask implements Runnable {
 
     private final ArtifactProvider artifactProvider;
 
-    public ArtifactTask(ArtifactSearchResult artifactInfos, ArtifactFilter artifactFilter, boolean fetchArtifact, BlockingQueue<Result> queue,
+    /**
+     * Constructor.
+     * 
+     * @param artifactSearchResult
+     *            The {@link ArtifactSearchResult}.
+     * @param artifactFilter
+     *            The {@link ArtifactFilter}.
+     * @param fetchArtifact
+     *            if <code>true</code> the {@link Artifact} will be fetched,
+     *            otherwise only the model {@link Artifact} (i.e. pom).
+     * @param queue
+     *            The {@link BlockingQueue} for publishing the {@link Result}s.
+     * @param artifactProvider
+     *            The {@link ArtifactProvider} for fetching the {@link Artifact}s.
+     */
+    ArtifactTask(ArtifactSearchResult artifactSearchResult, ArtifactFilter artifactFilter, boolean fetchArtifact, BlockingQueue<Result> queue,
             ArtifactProvider artifactProvider) {
-        this.artifactInfos = artifactInfos;
+        this.artifactInfos = artifactSearchResult;
         this.artifactFilter = artifactFilter;
         this.fetchArtifact = fetchArtifact;
         this.queue = queue;
@@ -99,15 +116,17 @@ public class ArtifactTask implements Runnable {
                         } else {
                             artifactResult = Optional.empty();
                         }
-                        queue.put(new Result(modelArtifactResult, artifactResult, lastModified));
+                        Result result = new Result(modelArtifactResult, artifactResult, lastModified);
+                        queue.put(result);
                     } catch (ArtifactResolutionException e) {
-                        LOGGER.warn("Cannot resolve artifact " + artifact, e);
+                        LOGGER.warn("Cannot resolve artifact '" + artifact + "'.", e);
                     }
                 }
             }
-            queue.put(new Result(null, null, null));
+            queue.put(Result.LAST);
         } catch (InterruptedException e) {
-            LOGGER.warn("Interrupted...", e);
+            LOGGER.warn("Task has been interrupted.", e);
         }
     }
+
 }

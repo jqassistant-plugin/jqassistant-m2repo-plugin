@@ -14,7 +14,6 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescript
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenRepositoryResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 
-import org.apache.maven.index.ArtifactInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,9 +80,8 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
             // Search artifacts
             ScannerContext context = scanner.getContext();
             context.push(ArtifactProvider.class, artifactProvider);
-            try {
-                Iterable<ArtifactInfo> searchResponse = mavenIndex.getArtifactsSince(artifactsSince);
-                scanner.scan(searchResponse, searchResponse.toString(), MavenScope.REPOSITORY);
+            try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(artifactsSince)) {
+                scanner.scan(searchResult, searchResult.toString(), MavenScope.REPOSITORY);
             } finally {
                 context.pop(ArtifactProvider.class);
             }

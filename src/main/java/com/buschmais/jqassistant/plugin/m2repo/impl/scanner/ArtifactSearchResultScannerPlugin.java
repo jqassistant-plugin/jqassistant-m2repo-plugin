@@ -32,8 +32,6 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A plugin for (remote) maven artifacts.
@@ -42,7 +40,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<ArtifactSearchResult, MavenRepositoryDescriptor> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactSearchResultScannerPlugin.class);
     private static final String PROPERTY_NAME_ARTIFACTS_KEEP = "m2repo.artifacts.keep";
     private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
     private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
@@ -120,7 +117,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
             } catch (InterruptedException e) {
                 throw new IOException("Interrupted while waiting for artifact result", e);
             }
-            if (result.getModelArtifactResult() != null) {
+            if (result != ArtifactTask.Result.LAST) {
                 Artifact resolvedModelArtifact = result.getModelArtifactResult().getArtifact();
                 Long lastModified = result.getLastModified();
                 MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
@@ -149,7 +146,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                     }
                 }
             }
-        } while (result.getModelArtifactResult() != null);
+        } while (result != ArtifactTask.Result.LAST);
         pool.shutdown();
     }
 
