@@ -109,10 +109,10 @@ public class ArtifactTask implements Runnable {
                     Artifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
                     Optional<ArtifactResult> artifactResult;
                     try {
-                        LOGGER.info("Fetching model '{}'.", modelArtifact);
+                        LOGGER.debug("Fetching model '{}'.", modelArtifact);
                         ArtifactResult modelArtifactResult = this.artifactProvider.getArtifact(modelArtifact);
                         if (fetchArtifact && !artifact.getExtension().equals(EXTENSION_POM)) {
-                            LOGGER.info("Fetching artifact '{}'.", artifact);
+                            LOGGER.debug("Fetching artifact '{}'.", artifact);
                             artifactResult = Optional.of(artifactProvider.getArtifact(artifact));
                         } else {
                             artifactResult = Optional.empty();

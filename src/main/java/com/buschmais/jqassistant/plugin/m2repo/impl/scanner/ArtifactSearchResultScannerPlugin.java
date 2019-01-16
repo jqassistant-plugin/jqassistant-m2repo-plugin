@@ -115,44 +115,45 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
         pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
 
         ArtifactTask.Result result;
-        do {
-            try {
+        try {
+            do {
                 result = queue.take();
-            } catch (InterruptedException e) {
-                throw new IOException("Interrupted while waiting for artifact result", e);
-            }
-            if (result != ArtifactTask.Result.LAST) {
-                Artifact resolvedModelArtifact = result.getModelArtifactResult().getArtifact();
-                Long lastModified = result.getLastModified();
-                MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
-                if (modelDescriptor == null) {
-                    context.push(PomModelBuilder.class, effectiveModelBuilder);
-                    try {
-                        LOGGER.info("Scanning model '{}'.", resolvedModelArtifact);
-                        modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
-                    } finally {
-                        context.pop(PomModelBuilder.class);
+                if (result != ArtifactTask.Result.LAST) {
+                    Artifact resolvedModelArtifact = result.getModelArtifactResult().getArtifact();
+                    Long lastModified = result.getLastModified();
+                    MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, resolvedModelArtifact);
+                    if (modelDescriptor == null) {
+                        context.push(PomModelBuilder.class, effectiveModelBuilder);
+                        try {
+                            LOGGER.info("Scanning model '{}'.", resolvedModelArtifact);
+                            modelDescriptor = scanArtifactFile(resolvedModelArtifact, scanner);
+                        } finally {
+                            context.pop(PomModelBuilder.class);
+                        }
+                        modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
+                        repositoryDescriptor.getContainedModels().add(modelDescriptor);
                     }
-                    modelDescriptor = markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, resolvedModelArtifact, lastModified, store);
-                    repositoryDescriptor.getContainedModels().add(modelDescriptor);
-                }
-                if (result.getArtifactResult().isPresent()) {
-                    ArtifactResult artifactResult = result.getArtifactResult().get();
-                    Artifact artifact = artifactResult.getArtifact();
-                    if (!artifact.getExtension().equals(EXTENSION_POM)) {
-                        Descriptor descriptor = scanArtifactFile(artifactResult.getArtifact(), scanner);
-                        MavenArtifactDescriptor descriptorToAdd = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
-                        MavenArtifactDescriptor mavenArtifactDescriptor = markReleaseOrSnaphot(descriptorToAdd, MavenArtifactDescriptor.class, artifact,
-                                lastModified, store);
-                        MavenArtifactHelper.setId(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
-                        MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
-                        modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
-                        repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
+                    if (result.getArtifactResult().isPresent()) {
+                        ArtifactResult artifactResult = result.getArtifactResult().get();
+                        Artifact artifact = artifactResult.getArtifact();
+                        if (!artifact.getExtension().equals(EXTENSION_POM)) {
+                            Descriptor descriptor = scanArtifactFile(artifactResult.getArtifact(), scanner);
+                            MavenArtifactDescriptor descriptorToAdd = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
+                            MavenArtifactDescriptor mavenArtifactDescriptor = markReleaseOrSnaphot(descriptorToAdd, MavenArtifactDescriptor.class, artifact,
+                                    lastModified, store);
+                            MavenArtifactHelper.setId(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
+                            MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, new RepositoryArtifactCoordinates(artifact, lastModified));
+                            modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
+                            repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
+                        }
                     }
                 }
-            }
-        } while (result != ArtifactTask.Result.LAST);
-        pool.shutdown();
+            } while (result != ArtifactTask.Result.LAST);
+        } catch (InterruptedException e) {
+            throw new IOException("Interrupted while waiting for artifact result", e);
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     /**
@@ -180,7 +181,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
     /**
      * Returns {@link MavenPomXmlDescriptor} from the given repository descriptor or
      * <code>null</code>.
-     * 
+     *
      * @param repositoryDescriptor
      *            the repository containing the model.
      * @param resolvedModelArtifact
