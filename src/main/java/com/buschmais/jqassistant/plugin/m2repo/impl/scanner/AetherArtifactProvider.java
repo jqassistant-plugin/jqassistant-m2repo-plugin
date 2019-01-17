@@ -77,9 +77,6 @@ public class AetherArtifactProvider implements ArtifactProvider {
         String userInfo = repositoryUrl.getUserInfo();
         this.username = StringUtils.substringBefore(userInfo, ":");
         this.password = StringUtils.substringAfter(userInfo, ":");
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Create new " + this.getClass().getSimpleName() + " for URL " + url);
-        }
         AuthenticationBuilder authBuilder = new AuthenticationBuilder();
         if (username != null) {
             authBuilder.addUsername(username);
@@ -95,7 +92,7 @@ public class AetherArtifactProvider implements ArtifactProvider {
         this.repositoryFileResolver = new MavenRepositoryFileResolver(repositoryDescriptor);
         this.repositoryRoot = new File(workDirectory, repositoryId);
         this.repositoryArtifactResolver = new MavenRepositoryArtifactResolver(repositoryRoot, repositoryFileResolver);
-        LOGGER.info("Using '{}' for repository URL '{}'", repositoryRoot, url);
+        LOGGER.info("Using local repository '{}' for URL '{}'", repositoryRoot.getAbsolutePath(), url);
         session = newRepositorySystemSession(repositorySystem, repositoryRoot);
     }
 
