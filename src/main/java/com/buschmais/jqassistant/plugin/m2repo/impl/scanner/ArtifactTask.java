@@ -26,7 +26,9 @@ public class ArtifactTask implements Runnable {
      */
     public static class Result {
 
-        public static final Result LAST = new Result(null, null, null);
+        public static final Result LAST = new Result(null, null, null, null);
+
+        private final ArtifactInfo artifactInfo;
 
         private final ArtifactResult modelArtifactResult;
 
@@ -34,10 +36,15 @@ public class ArtifactTask implements Runnable {
 
         private final Long lastModified;
 
-        public Result(ArtifactResult modelArtifactResult, Optional<ArtifactResult> artifactResult, Long lastModified) {
+        public Result(ArtifactInfo artifactInfo, ArtifactResult modelArtifactResult, Optional<ArtifactResult> artifactResult, Long lastModified) {
+            this.artifactInfo = artifactInfo;
             this.modelArtifactResult = modelArtifactResult;
             this.artifactResult = artifactResult;
             this.lastModified = lastModified;
+        }
+
+        public ArtifactInfo getArtifactInfo() {
+            return artifactInfo;
         }
 
         public ArtifactResult getModelArtifactResult() {
@@ -104,7 +111,7 @@ public class ArtifactTask implements Runnable {
                 Long lastModified = lastModifiedField != null ? Long.valueOf(lastModifiedField) : null;
                 Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
                 if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
-                    LOGGER.info("Skipping '{}'.", artifactInfo);
+                    LOGGER.debug("Skipping '{}'.", artifactInfo);
                 } else {
                     Artifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
                     Optional<ArtifactResult> artifactResult;
@@ -117,7 +124,7 @@ public class ArtifactTask implements Runnable {
                         } else {
                             artifactResult = Optional.empty();
                         }
-                        Result result = new Result(modelArtifactResult, artifactResult, lastModified);
+                        Result result = new Result(artifactInfo, modelArtifactResult, artifactResult, lastModified);
                         queue.put(result);
                     } catch (ArtifactResolutionException e) {
                         LOGGER.warn("Cannot resolve artifact '" + artifact + "'.", e);
