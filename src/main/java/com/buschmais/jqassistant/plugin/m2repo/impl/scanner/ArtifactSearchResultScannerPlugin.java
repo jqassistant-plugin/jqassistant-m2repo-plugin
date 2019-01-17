@@ -28,6 +28,8 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
+import com.buschmais.xo.api.Query;
+import com.buschmais.xo.api.ResultIterator;
 
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -113,7 +115,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
         MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
 
         BlockingQueue<ArtifactTask.Result> queue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
-        ExecutorService pool = Executors.newFixedThreadPool(1);
+        ExecutorService pool = Executors.newFixedThreadPool(1, r -> new Thread(r, ArtifactTask.class.getSimpleName()));
         pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
 
         ArtifactTask.Result result;
@@ -187,16 +189,26 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *
      * @param repositoryDescriptor
      *            the repository containing the model.
-     * @param resolvedModelArtifact
+     * @param modelArtifact
      *            The resolved model artifact (i.e. in case of a snapshot containing
      *            the timestamp/buildnumber in the version.)
      * @return a {@link MavenPomXmlDescriptor} or `null`.
      */
-    private MavenPomXmlDescriptor findModel(MavenRepositoryDescriptor repositoryDescriptor, Artifact resolvedModelArtifact) {
-        Artifact mainArtifact = new DefaultArtifact(resolvedModelArtifact.getGroupId(), resolvedModelArtifact.getArtifactId(),
-                resolvedModelArtifact.getExtension(), resolvedModelArtifact.getVersion());
+    private MavenPomXmlDescriptor findModel(MavenRepositoryDescriptor repositoryDescriptor, Artifact modelArtifact) {
+        Artifact mainArtifact = new DefaultArtifact(modelArtifact.getGroupId(), modelArtifact.getArtifactId(),
+                modelArtifact.getExtension(), modelArtifact.getVersion());
         String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(mainArtifact));
-        return repositoryDescriptor.findModel(coordinates);
+        MavenPomXmlDescriptor model = null;
+        try (Query.Result<MavenPomXmlDescriptor> models = repositoryDescriptor.findModel(coordinates)) {
+            ResultIterator<MavenPomXmlDescriptor> iterator = models.iterator();
+            if (iterator.hasNext()) {
+                model = iterator.next();
+            }
+            if (iterator.hasNext()) {
+                LOGGER.warn("Found more than one model for '{}'.", modelArtifact);
+            }
+        }
+        return model;
     }
 
     /**
