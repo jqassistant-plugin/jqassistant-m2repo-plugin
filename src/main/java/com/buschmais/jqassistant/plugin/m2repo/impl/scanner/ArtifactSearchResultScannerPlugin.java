@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.*;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
@@ -31,6 +28,8 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 import com.buschmais.xo.api.Query;
 import com.buschmais.xo.api.ResultIterator;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -118,6 +117,8 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
         ExecutorService pool = Executors.newFixedThreadPool(1, r -> new Thread(r, ArtifactTask.class.getSimpleName()));
         pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
 
+        Cache<String, MavenPomXmlDescriptor> cache = CacheBuilder.newBuilder().maximumSize(256).build();
+        
         ArtifactTask.Result result;
         try {
             do {
@@ -126,18 +127,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                     LOGGER.info("Processing '{}'.", result.getArtifactInfo());
                     Artifact modelArtifact = result.getModelArtifactResult().getArtifact();
                     Long lastModified = result.getLastModified();
-                    MavenPomXmlDescriptor modelDescriptor = findModel(repositoryDescriptor, modelArtifact);
-                    if (modelDescriptor == null) {
-                        context.push(PomModelBuilder.class, effectiveModelBuilder);
-                        try {
-                            LOGGER.info("Scanning model '{}'.", modelArtifact);
-                            modelDescriptor = scan(modelArtifact, scanner);
-                        } finally {
-                            context.pop(PomModelBuilder.class);
-                        }
-                        markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, modelArtifact, lastModified, store);
-                        repositoryDescriptor.getContainedModels().add(modelDescriptor);
-                    }
+                    MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, lastModified, repositoryDescriptor, scanner, effectiveModelBuilder, cache);
                     if (result.getArtifactResult().isPresent()) {
                         ArtifactResult artifactResult = result.getArtifactResult().get();
                         Artifact artifact = artifactResult.getArtifact();
@@ -162,6 +152,53 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
     }
 
     /**
+     * Determines the {@link MavenPomXmlDescriptor} of a POM {@link Artifact}.
+     * 
+     * @param modelArtifact
+     * @param lastModified
+     * @param repositoryDescriptor
+     * @param scanner
+     * @param effectiveModelBuilder
+     * @param cache
+     * @return
+     */
+    private MavenPomXmlDescriptor getModel(Artifact modelArtifact, Long lastModified, MavenRepositoryDescriptor repositoryDescriptor, Scanner scanner,
+            PomModelBuilder effectiveModelBuilder, Cache<String, MavenPomXmlDescriptor> cache) {
+        Artifact mainArtifact = new DefaultArtifact(modelArtifact.getGroupId(), modelArtifact.getArtifactId(), modelArtifact.getExtension(),
+                modelArtifact.getVersion());
+        String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(mainArtifact));
+        try {
+            return cache.get(coordinates, () -> {
+                MavenPomXmlDescriptor modelDescriptor = null;
+                try (Query.Result<MavenPomXmlDescriptor> models = repositoryDescriptor.findModel(coordinates)) {
+                    ResultIterator<MavenPomXmlDescriptor> iterator = models.iterator();
+                    if (iterator.hasNext()) {
+                        modelDescriptor = iterator.next();
+                    }
+                    if (iterator.hasNext()) {
+                        LOGGER.warn("Found more than one model for '{}'.", modelArtifact);
+                    }
+                }
+                if (modelDescriptor == null) {
+                    scanner.getContext().push(PomModelBuilder.class, effectiveModelBuilder);
+                    try {
+                        LOGGER.info("Scanning model '{}'.", modelArtifact);
+                        modelDescriptor = scan(modelArtifact, scanner);
+                    } finally {
+                        scanner.getContext().pop(PomModelBuilder.class);
+                    }
+                    markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, modelArtifact, lastModified, scanner.getContext().getStore());
+                    repositoryDescriptor.getContainedModels().add(modelDescriptor);
+                }
+                return modelDescriptor;
+            });
+        } catch (ExecutionException e) {
+            LOGGER.warn("Cannot get model '" + modelArtifact + '"');
+        }
+        return null;
+    }
+
+    /**
      * Scans the given {@link Artifact}.
      * 
      * @param artifact
@@ -181,34 +218,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                 artifactFile.delete();
             }
         }
-    }
-
-    /**
-     * Returns {@link MavenPomXmlDescriptor} from the given repository descriptor or
-     * <code>null</code>.
-     *
-     * @param repositoryDescriptor
-     *            the repository containing the model.
-     * @param modelArtifact
-     *            The resolved model artifact (i.e. in case of a snapshot containing
-     *            the timestamp/buildnumber in the version.)
-     * @return a {@link MavenPomXmlDescriptor} or `null`.
-     */
-    private MavenPomXmlDescriptor findModel(MavenRepositoryDescriptor repositoryDescriptor, Artifact modelArtifact) {
-        Artifact mainArtifact = new DefaultArtifact(modelArtifact.getGroupId(), modelArtifact.getArtifactId(),
-                modelArtifact.getExtension(), modelArtifact.getVersion());
-        String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(mainArtifact));
-        MavenPomXmlDescriptor model = null;
-        try (Query.Result<MavenPomXmlDescriptor> models = repositoryDescriptor.findModel(coordinates)) {
-            ResultIterator<MavenPomXmlDescriptor> iterator = models.iterator();
-            if (iterator.hasNext()) {
-                model = iterator.next();
-            }
-            if (iterator.hasNext()) {
-                LOGGER.warn("Found more than one model for '{}'.", modelArtifact);
-            }
-        }
-        return model;
     }
 
     /**
