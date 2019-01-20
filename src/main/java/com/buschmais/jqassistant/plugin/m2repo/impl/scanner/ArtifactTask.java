@@ -7,7 +7,6 @@ import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.index.ArtifactInfo;
-import org.apache.maven.index.MAVEN;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -26,7 +25,7 @@ public class ArtifactTask implements Runnable {
      */
     public static class Result {
 
-        public static final Result LAST = new Result(null, null, null, null);
+        public static final Result LAST = new Result(null, null, null, -1);
 
         private final ArtifactInfo artifactInfo;
 
@@ -34,9 +33,9 @@ public class ArtifactTask implements Runnable {
 
         private final Optional<ArtifactResult> artifactResult;
 
-        private final Long lastModified;
+        private final long lastModified;
 
-        public Result(ArtifactInfo artifactInfo, ArtifactResult modelArtifactResult, Optional<ArtifactResult> artifactResult, Long lastModified) {
+        public Result(ArtifactInfo artifactInfo, ArtifactResult modelArtifactResult, Optional<ArtifactResult> artifactResult, long lastModified) {
             this.artifactInfo = artifactInfo;
             this.modelArtifactResult = modelArtifactResult;
             this.artifactResult = artifactResult;
@@ -55,7 +54,7 @@ public class ArtifactTask implements Runnable {
             return artifactResult;
         }
 
-        public Long getLastModified() {
+        public long getLastModified() {
             return lastModified;
         }
     }
@@ -102,13 +101,12 @@ public class ArtifactTask implements Runnable {
     public void run() {
         try {
             for (ArtifactInfo artifactInfo : artifactInfos) {
-                String groupId = artifactInfo.getFieldValue(MAVEN.GROUP_ID);
-                String artifactId = artifactInfo.getFieldValue(MAVEN.ARTIFACT_ID);
-                String classifier = artifactInfo.getFieldValue(MAVEN.CLASSIFIER);
-                String packaging = artifactInfo.getFieldValue(MAVEN.PACKAGING);
-                String version = artifactInfo.getFieldValue(MAVEN.VERSION);
-                String lastModifiedField = artifactInfo.getFieldValue(MAVEN.LAST_MODIFIED);
-                Long lastModified = lastModifiedField != null ? Long.valueOf(lastModifiedField) : null;
+                String groupId = artifactInfo.getGroupId();
+                String artifactId = artifactInfo.getArtifactId();
+                String classifier = artifactInfo.getClassifier();
+                String packaging = artifactInfo.getPackaging();
+                String version = artifactInfo.getVersion();
+                long lastModified = artifactInfo.getLastModified();
                 Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
                 if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
                     LOGGER.debug("Skipping '{}'.", artifactInfo);

@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
@@ -25,13 +28,11 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
-import com.buschmais.xo.api.Query;
-import com.buschmais.xo.api.ResultIterator;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.maven.index.ArtifactInfo;
 import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
     protected void configure() {
         scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, true);
         keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
-
         List<String> includeFilter = getFilterPattern(PROPERTY_NAME_FILTER_INCLUDES);
         List<String> excludeFilter = getFilterPattern(PROPERTY_NAME_FILTER_EXCLUDES);
         artifactFilter = new ArtifactFilter(includeFilter, excludeFilter);
@@ -118,15 +118,16 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
         pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
 
         Cache<String, MavenPomXmlDescriptor> cache = Caffeine.newBuilder().maximumSize(256).build();
-        
+
         ArtifactTask.Result result;
         try {
             do {
                 result = queue.take();
                 if (result != ArtifactTask.Result.LAST) {
-                    LOGGER.info("Processing '{}'.", result.getArtifactInfo());
+                    ArtifactInfo artifactInfo = result.getArtifactInfo();
                     Artifact modelArtifact = result.getModelArtifactResult().getArtifact();
-                    Long lastModified = result.getLastModified();
+                    long lastModified = result.getLastModified();
+                    LOGGER.debug("Processing '{}'.", artifactInfo);
                     MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, lastModified, repositoryDescriptor, scanner, effectiveModelBuilder, cache);
                     if (result.getArtifactResult().isPresent()) {
                         ArtifactResult artifactResult = result.getArtifactResult().get();
@@ -168,27 +169,23 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *            The {@link Cache}.
      * @return The {@link MavenPomXmlDescriptor} representing the model.
      */
-    private MavenPomXmlDescriptor getModel(Artifact modelArtifact, Long lastModified, MavenRepositoryDescriptor repositoryDescriptor, Scanner scanner,
+    private MavenPomXmlDescriptor getModel(Artifact modelArtifact, long lastModified, MavenRepositoryDescriptor repositoryDescriptor, Scanner scanner,
             PomModelBuilder effectiveModelBuilder, Cache<String, MavenPomXmlDescriptor> cache) {
-        Artifact mainArtifact = new DefaultArtifact(modelArtifact.getGroupId(), modelArtifact.getArtifactId(), modelArtifact.getExtension(),
-                modelArtifact.getVersion());
-        String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(mainArtifact));
+        String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(modelArtifact));
         return cache.get(coordinates, key -> {
-            MavenPomXmlDescriptor modelDescriptor = null;
-            try (Query.Result<MavenPomXmlDescriptor> models = repositoryDescriptor.findModel(key)) {
-                ResultIterator<MavenPomXmlDescriptor> iterator = models.iterator();
-                if (iterator.hasNext()) {
-                    modelDescriptor = iterator.next();
-                }
-                if (iterator.hasNext()) {
-                    LOGGER.warn("Found more than one model for '{}'.", modelArtifact);
-                }
-            }
+            MavenPomXmlDescriptor modelDescriptor = repositoryDescriptor.findModel(key);
             if (modelDescriptor == null) {
                 scanner.getContext().push(PomModelBuilder.class, effectiveModelBuilder);
                 try {
                     LOGGER.info("Scanning model '{}'.", modelArtifact);
                     modelDescriptor = scan(modelArtifact, scanner);
+                    if (!key.equals(modelDescriptor.getFullQualifiedName())) {
+                        // The fqn is already set by the scanner, but may be not consistent with the
+                        // required fqn for repositories (e.g. if model could not be parsed. So it is
+                        // overriden here).
+                        LOGGER.warn("Model coordinates '{}' do not match expected '{}', overriding.", modelDescriptor.getFullQualifiedName(), key);
+                        modelDescriptor.setFullQualifiedName(key);
+                    }
                 } finally {
                     scanner.getContext().pop(PomModelBuilder.class);
                 }

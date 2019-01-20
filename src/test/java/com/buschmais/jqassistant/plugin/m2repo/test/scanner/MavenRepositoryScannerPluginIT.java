@@ -42,27 +42,4 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryTest 
         }
     }
 
-    @Test
-    public void updateSnapshot() throws IOException {
-        try {
-            startServer("2");
-            store.beginTransaction();
-            getScanner(getScannerProperties()).scan(new URL(TEST_REPOSITORY_URL), TEST_REPOSITORY_URL, MavenScope.REPOSITORY);
-            Long countArtifactNodes = store.executeQuery("MATCH (:Repository)-[:CONTAINS_POM]->(n:Maven:Pom:Xml) RETURN count(n) as nodes").getSingleResult()
-                    .get("nodes", Long.class);
-            assertThat("Number of POM nodes is wrong.", countArtifactNodes, equalTo(1L));
-
-            restartServer("3");
-            getScanner(getScannerProperties()).scan(new URL(TEST_REPOSITORY_URL), TEST_REPOSITORY_URL, MavenScope.REPOSITORY);
-
-            countArtifactNodes = store.executeQuery("MATCH (:Repository)-[:CONTAINS_POM]->(n:Maven:Pom:Xml) RETURN count(n) as nodes").getSingleResult()
-                    .get("nodes", Long.class);
-            assertThat("Number of 'POM' nodes is wrong.", countArtifactNodes, equalTo(2L));
-        } finally {
-            if (store.hasActiveTransaction()) {
-                store.commitTransaction();
-            }
-            stopServer();
-        }
-    }
 }
