@@ -60,7 +60,8 @@ public class EffectiveModelBuilder implements PomModelBuilder {
             LOGGER.debug("Cannot build effective model for " + pomFile.getAbsolutePath(), e);
         }
         LOGGER.warn("Using raw model for " + pomFile.getAbsolutePath());
-        return new EffectiveModel(rawModelBuilder.getModel(pomFile));
+        Model model = rawModelBuilder.getModel(pomFile);
+        return model != null ? new EffectiveModel(model) : null;
     }
 
     /*
