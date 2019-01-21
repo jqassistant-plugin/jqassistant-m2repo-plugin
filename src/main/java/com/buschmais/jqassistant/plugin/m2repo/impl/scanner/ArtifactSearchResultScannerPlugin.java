@@ -120,7 +120,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
 
         Cache<String, MavenPomXmlDescriptor> cache = Caffeine.newBuilder().maximumSize(256).build();
 
-        long modelCount = 0;
         long artifactCount = 0;
         ArtifactTask.Result result;
         LOGGER.info("Starting scan.");
@@ -135,7 +134,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                     boolean snapshot = modelArtifact.isSnapshot();
                     MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, scanner,
                             effectiveModelBuilder, cache);
-                    modelCount++;
                     // Skip if the POM itself is the artifact
                     if (!EXTENSION_POM.equals(artifactInfo.getPackaging())) { // Note: packaging can be null
                         Coordinates artifactCoordinates = new ArtifactInfoCoordinates(artifactInfo, modelArtifact.getBaseVersion(), snapshot);
@@ -148,7 +146,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                                 LOGGER.info("Scanning artifact '{}'.", artifact);
                                 Descriptor descriptor = scan(artifactResult.getArtifact(), scanner);
                                 mavenArtifactDescriptor = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
-                                artifactCount++;
                             } else {
                                 // Resolve artifact without scanning
                                 mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
@@ -159,14 +156,15 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                             }
                             repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
+                            artifactCount++;
                         }
                     }
-                    if (modelCount % 100 == 0) {
-                        LOGGER.info("Processed {} models/{} artifacts.", modelCount, artifactCount);
+                    if (artifactCount % 100 == 0) {
+                        LOGGER.info("Processed {} artifacts.", artifactCount);
                     }
                 }
             } while (result != ArtifactTask.Result.LAST);
-            LOGGER.info("Finished scan: {} models/{} artifacts.", modelCount, artifactCount);
+            LOGGER.info("Finished scan: {} artifacts.", artifactCount);
         } catch (InterruptedException e) {
             throw new IOException("Interrupted while waiting for artifact result", e);
         } finally {

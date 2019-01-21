@@ -12,13 +12,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * A file resolver strategy for a local maven repository.
  * 
  * If a file is given which is part of the local maven repository then this
- * strategy will lookup an existing artifact descriptor, i.e.
+ * strategy will lookup an existing artifact descriptor.
  */
 public class MavenRepositoryFileResolver extends AbstractFileResolver {
 
     private MavenRepositoryDescriptor repositoryDescriptor;
 
-    private Cache<String, FileDescriptor> cache = Caffeine.newBuilder().softValues().build();
+    private Cache<String, FileDescriptor> cache = Caffeine.newBuilder().maximumSize(512).build();
 
     /**
      * Constructor.

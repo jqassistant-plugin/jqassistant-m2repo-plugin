@@ -173,7 +173,7 @@ public class MavenIndex implements AutoCloseable {
         } else if (updateResult.getTimestamp() == null) {
             LOGGER.info("No update needed, index is up to date.");
         } else {
-            LOGGER.info("Received an incremental update, change covered " + lastUpdateLocalRepo + " - " + updateResult.getTimestamp() + " period.");
+            LOGGER.info("Received an incremental update starting from {}." , updateResult.getTimestamp());
         }
     }
 
