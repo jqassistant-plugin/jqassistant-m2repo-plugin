@@ -5,6 +5,9 @@ import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractFileResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 /**
  * A file resolver strategy for a local maven repository.
  * 
@@ -14,6 +17,8 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescript
 public class MavenRepositoryFileResolver extends AbstractFileResolver {
 
     private MavenRepositoryDescriptor repositoryDescriptor;
+
+    private Cache<String, FileDescriptor> cache = Caffeine.newBuilder().softValues().build();
 
     /**
      * Constructor.
@@ -32,7 +37,7 @@ public class MavenRepositoryFileResolver extends AbstractFileResolver {
 
     @Override
     public <D extends FileDescriptor> D match(String containedPath, Class<D> type, ScannerContext context) {
-        FileDescriptor fileDescriptor = repositoryDescriptor.findFile(containedPath);
+        FileDescriptor fileDescriptor = cache.get(containedPath, path -> repositoryDescriptor.findFile(containedPath));
         return toFileDescriptor(fileDescriptor, type, containedPath, context);
     }
 }

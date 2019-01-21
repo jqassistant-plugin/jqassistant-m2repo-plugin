@@ -76,7 +76,6 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
                 artifactsSince = lastScanTime;
             }
             mavenIndex.updateIndex();
-            LOGGER.info("Starting artifact scan.");
             // Search artifacts
             ScannerContext context = scanner.getContext();
             context.push(ArtifactProvider.class, artifactProvider);
@@ -87,6 +86,5 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
             }
         }
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
-        LOGGER.info("Finished artifact scan.");
     }
 }

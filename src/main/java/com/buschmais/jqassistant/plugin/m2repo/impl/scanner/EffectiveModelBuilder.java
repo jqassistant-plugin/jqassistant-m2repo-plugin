@@ -58,6 +58,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
             return builder.build(req).getEffectiveModel();
         } catch (ModelBuildingException e) {
             LOGGER.debug("Cannot build effective model for " + pomFile.getAbsolutePath(), e);
+            LOGGER.warn("Building model for '{}' reported errors: {}", pomFile.getAbsolutePath(), e.getProblems());
         }
         LOGGER.warn("Using raw model for " + pomFile.getAbsolutePath());
         Model model = rawModelBuilder.getModel(pomFile);
