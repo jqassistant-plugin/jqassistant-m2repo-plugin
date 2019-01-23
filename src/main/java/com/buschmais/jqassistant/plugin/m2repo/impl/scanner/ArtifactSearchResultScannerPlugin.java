@@ -161,6 +161,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                     }
                     if (artifactCount % 100 == 0) {
                         LOGGER.info("Processed {} artifacts.", artifactCount);
+                        scanner.getContext().getStore().flush();
                     }
                 }
             } while (result != ArtifactTask.Result.LAST);
