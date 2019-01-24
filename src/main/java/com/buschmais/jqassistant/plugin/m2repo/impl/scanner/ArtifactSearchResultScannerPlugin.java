@@ -147,6 +147,8 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                                 LOGGER.info("Scanning artifact '{}'.", artifact);
                                 Descriptor descriptor = scan(artifactResult.getArtifact(), scanner);
                                 mavenArtifactDescriptor = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
+                                MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, artifactCoordinates);
+                                MavenArtifactHelper.setId(mavenArtifactDescriptor, artifactCoordinates);
                             } else {
                                 // Resolve artifact without scanning
                                 mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
