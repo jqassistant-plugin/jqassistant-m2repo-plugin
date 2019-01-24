@@ -9,5 +9,5 @@ import com.buschmais.xo.neo4j.api.annotation.Label;
  * @author pherklotz
  */
 @Label(value = "Release")
-public interface MavenReleaseDescriptor extends MavenDescriptor {
+public interface MavenReleaseDescriptor extends MavenDescriptor, LastModifiedDescriptor{
 }

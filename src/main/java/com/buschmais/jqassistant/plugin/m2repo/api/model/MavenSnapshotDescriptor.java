@@ -10,16 +10,5 @@ import com.buschmais.xo.neo4j.api.annotation.Property;
  * @author pherklotz
  */
 @Label(value = "Snapshot")
-public interface MavenSnapshotDescriptor extends MavenDescriptor {
-
-    /**
-     * The last modified date as String.
-     * 
-     * @return the last modified date as String.
-     */
-    @Property("lastModified")
-    Long getLastModified();
-
-    void setLastModified(Long lastModified);
-
+public interface MavenSnapshotDescriptor extends MavenDescriptor, LastModifiedDescriptor {
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
+import com.buschmais.jqassistant.plugin.m2repo.api.model.LastModifiedDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResult;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
@@ -28,6 +29,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepositoryTest {
+
+    private static final String GROUP_ID = "com.buschmais.xo";
+    private static final String ARTIFACT_ID_XO_AP = "xo.api";
+    private static final String PACKAGING_JAR = "jar";
+    private static final String VERSION_PREFIX = "0.5.0-SNAPSHOT";
+    private static final long LAST_MODIFIED = -1;
 
     @Test
     public void modelAndArtifact() throws IOException {
@@ -48,10 +55,10 @@ public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepository
             store.beginTransaction();
 
             ArtifactInfo artifactInfo = new ArtifactInfo();
-            artifactInfo.setFieldValue(MAVEN.GROUP_ID, "com.buschmais.xo");
-            artifactInfo.setFieldValue(MAVEN.ARTIFACT_ID, "xo.api");
+            artifactInfo.setFieldValue(MAVEN.GROUP_ID, GROUP_ID);
+            artifactInfo.setFieldValue(MAVEN.ARTIFACT_ID, ARTIFACT_ID_XO_AP);
             artifactInfo.setFieldValue(MAVEN.VERSION, "0.5.0-SNAPSHOT");
-            artifactInfo.setFieldValue(MAVEN.PACKAGING, "jar");
+            artifactInfo.setFieldValue(MAVEN.PACKAGING, PACKAGING_JAR);
 
             scan(scannerProperties, artifactInfo);
 
@@ -61,9 +68,22 @@ public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepository
             List<MavenPomXmlDescriptor> containedModels = repositoryDescriptor.getContainedModels();
             assertThat(containedModels, hasSize(1));
             MavenPomXmlDescriptor model = containedModels.get(0);
+            assertThat(model.getGroupId(), equalTo(GROUP_ID));
+            assertThat(model.getArtifactId(), equalTo(ARTIFACT_ID_XO_AP));
+            assertThat(model.getPackaging(), equalTo(PACKAGING_JAR));
+            assertThat(model.getVersion(), equalTo(VERSION_PREFIX));
+            assertThat(model, instanceOf(LastModifiedDescriptor.class));
+            assertThat(((LastModifiedDescriptor)model).getLastModified(), equalTo(LAST_MODIFIED));
+
             List<MavenArtifactDescriptor> containedArtifacts = repositoryDescriptor.getContainedArtifacts();
             assertThat(containedArtifacts, hasSize(1));
             MavenArtifactDescriptor artifact = containedArtifacts.get(0);
+            assertThat(artifact.getGroup(), equalTo(GROUP_ID));
+            assertThat(artifact.getName(), equalTo(ARTIFACT_ID_XO_AP));
+            assertThat(artifact.getType(), equalTo(PACKAGING_JAR));
+            assertThat(artifact.getVersion(), startsWith(VERSION_PREFIX));
+            assertThat(artifact, instanceOf(LastModifiedDescriptor.class));
+            assertThat(((LastModifiedDescriptor)artifact).getLastModified(), equalTo(LAST_MODIFIED));
             assertThat(model.getDescribes().contains(artifact), equalTo(true));
         } finally {
             if (store.hasActiveTransaction()) {

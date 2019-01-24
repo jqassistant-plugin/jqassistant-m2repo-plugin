@@ -17,6 +17,7 @@ import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
+import com.buschmais.jqassistant.plugin.m2repo.api.model.LastModifiedDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.AetherArtifactCoordinates;
@@ -150,7 +151,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                                 // Resolve artifact without scanning
                                 mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
                             }
-                            markReleaseOrSnaphot(mavenArtifactDescriptor, MavenArtifactDescriptor.class, snapshot, lastModified, store);
+                            markReleaseOrSnaphot(mavenArtifactDescriptor, snapshot, lastModified, store);
                             // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g. due to an invalid model)
                             if (!modelDescriptor.getDescribes().contains(mavenArtifactDescriptor)) {
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
@@ -212,7 +213,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                 } finally {
                     scanner.getContext().pop(PomModelBuilder.class);
                 }
-                markReleaseOrSnaphot(modelDescriptor, MavenPomXmlDescriptor.class, snapshot, lastModified, scanner.getContext().getStore());
+                markReleaseOrSnaphot(modelDescriptor, snapshot, lastModified, scanner.getContext().getStore());
                 repositoryDescriptor.getContainedModels().add(modelDescriptor);
             }
             return modelDescriptor;
@@ -247,22 +248,21 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *
      * @param descriptor
      *            the descriptor
-     * @param type
-     *            the expected descriptor type
      * @param snapshot
      *            if the artifact is a snapshot
      * @param lastModified
-     *            last modified date (for snapshots only)
+     *            last modified date
      * @param store
      *            the store
      */
-    private <D extends MavenDescriptor> void markReleaseOrSnaphot(D descriptor, Class<? extends D> type, boolean snapshot, Long lastModified, Store store) {
+    private <D extends MavenDescriptor> void markReleaseOrSnaphot(D descriptor, boolean snapshot, Long lastModified, Store store) {
+        LastModifiedDescriptor lastModifiedDescriptor;
         if (snapshot) {
-            MavenSnapshotDescriptor snapshotDescriptor = store.addDescriptorType(descriptor, MavenSnapshotDescriptor.class);
-            snapshotDescriptor.setLastModified(lastModified);
+            lastModifiedDescriptor = store.addDescriptorType(descriptor, MavenSnapshotDescriptor.class);
         } else {
-            store.addDescriptorType(descriptor, MavenReleaseDescriptor.class, type);
+            lastModifiedDescriptor = store.addDescriptorType(descriptor, MavenReleaseDescriptor.class);
         }
+        lastModifiedDescriptor.setLastModified(lastModified);
     }
 
     /**
