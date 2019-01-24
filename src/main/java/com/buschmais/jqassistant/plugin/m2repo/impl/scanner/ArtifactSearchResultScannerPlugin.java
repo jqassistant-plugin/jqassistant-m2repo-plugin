@@ -208,7 +208,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                     if (!key.equals(modelDescriptor.getFullQualifiedName())) {
                         // The fqn is already set by the scanner, but may be not consistent with the
                         // required fqn for repositories (e.g. if model could not be parsed. So it is
-                        // overriden here).
+                        // overridden here).
                         LOGGER.warn("Model coordinates '{}' do not match expected '{}', overriding.", modelDescriptor.getFullQualifiedName(), key);
                         modelDescriptor.setFullQualifiedName(key);
                     }

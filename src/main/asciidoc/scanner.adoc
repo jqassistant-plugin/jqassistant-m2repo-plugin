@@ -12,8 +12,7 @@ Examples:
 ----
 
 TIP: The plugin supports incremental runs on a maven repository. In this case only new artifacts will be downloaded and
-scanned. Old snapshot artifacts will be handled as predecessors (see below). Note that such predecessor artifacts will
-have no direct relationship to the :Maven:Repository node.
+scanned.
 
 TIP: For incremental scanning it is necessary that the exactly the same URL is provided on sub-sequent scans.
 
@@ -33,6 +32,7 @@ TIP: For incremental scanning it is necessary that the exactly the same URL is p
 TIP: The artifact patterns follow the Maven syntax, i.e. `[groupId]:[artifactId]:[type]:[version]`
 or `[groupId]:[artifactId]:[type]:[classifier]:[version]` and allow using wildcards.
 
+[[:Maven:Repository]]
 === Nodes labled with `:Maven:Repository`
 A remote Maven repository.
 
@@ -52,15 +52,27 @@ A remote Maven repository.
 | CONTAINS_ARTIFACT | <<:Maven:Artifact>> | 0..n | References the artifacts in the repository
 |====
 
-<<MavenArtifactScanner>>
-[[MavenArtifactScanner]]
-== Scanner for remote maven artifacts
+[[:Release]]
+=== Nodes labled with `:Release`
 
-Gets the maven artifact coordinates to retrieve the artifact from an repository and scans it.
-The scanner accepts `org.apache.maven.index.ArtifactInfo-Items`
-with the scope `maven:repository`.
+Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven versions.
 
-NOTE: This plugin needs some prerequisites to work properly. The context must
-contain a MavenRepositoryDescriptor to which the new Maven Artifact belongs and an
-ArtifactProvider-Object to load the artifact from the configured repository.
+.Properties of `:Release`
+[options="header"]
+|====
+| Name      	| Description
+| lastModifed	| timestamp of the last modification that is reported for the artifact
+|====
+
+[[:Snapshot]]
+=== Nodes labled with `:Snapshot`
+
+Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot versions.
+
+.Properties of `:Snapshot`
+[options="header"]
+|====
+| Name      	| Description
+| lastModifed	| timestamp of the last modification that is reported for the artifact
+|====
 

@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
+import com.buschmais.jqassistant.plugin.maven3.api.scanner.EffectiveModel;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.RawModelBuilder;
 
@@ -64,7 +65,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
         req.setSystemProperties(System.getProperties());
         builder.setModelValidator(new ModelValidatorImpl());
         try {
-            return builder.build(req).getEffectiveModel();
+            return new EffectiveModel(builder.build(req).getEffectiveModel());
         } catch (ModelBuildingException e) {
             LOGGER.debug("Cannot build effective model for " + pomFile.getAbsolutePath(), e);
             LOGGER.warn("Building model for '{}' reported errors: {}", pomFile.getAbsolutePath(), e.getProblems());
