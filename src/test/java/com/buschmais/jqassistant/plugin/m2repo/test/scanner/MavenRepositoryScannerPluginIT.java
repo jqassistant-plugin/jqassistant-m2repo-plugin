@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryTest {
+public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
 
     @Test
     public void scan() throws IOException {

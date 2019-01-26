@@ -2,8 +2,6 @@ package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,10 +9,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
-import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
-import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
@@ -28,7 +24,6 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -40,52 +35,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A plugin for (remote) maven artifacts.
- *
- * @author pherklotz
+ * Processes an {@link ArtifactSearchResult}.
  */
-public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<ArtifactSearchResult, MavenRepositoryDescriptor> {
+public class ArtifactSearchResultScanner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactSearchResultScannerPlugin.class);
-
-    private static final String PROPERTY_NAME_ARTIFACTS_KEEP = "m2repo.artifacts.keep";
-    private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
-    private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
-    private static final String PROPERTY_NAME_FILTER_EXCLUDES = "m2repo.filter.excludes";
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactSearchResultScanner.class);
 
     private static final String EXTENSION_POM = "pom";
     private static final int QUEUE_CAPACITY = 100;
 
-    private boolean keepArtifacts;
-    private boolean scanArtifacts;
-    private ArtifactFilter artifactFilter;
+    private final Scanner scanner;
+    private final ArtifactProvider artifactProvider;
+    private final ArtifactFilter artifactFilter;
+    private final boolean scanArtifacts;
+    private final boolean keepArtifacts;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void configure() {
-        scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, true);
-        keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
-        List<String> includeFilter = getFilterPattern(PROPERTY_NAME_FILTER_INCLUDES);
-        List<String> excludeFilter = getFilterPattern(PROPERTY_NAME_FILTER_EXCLUDES);
-        artifactFilter = new ArtifactFilter(includeFilter, excludeFilter);
+    public ArtifactSearchResultScanner(Scanner scanner, ArtifactProvider artifactProvider, ArtifactFilter artifactFilter, boolean scanArtifacts,
+            boolean keepArtifacts) {
+        this.scanner = scanner;
+        this.artifactProvider = artifactProvider;
+        this.artifactFilter = artifactFilter;
+        this.scanArtifacts = scanArtifacts;
+        this.keepArtifacts = keepArtifacts;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean accepts(ArtifactSearchResult item, String path, Scope scope) {
-        return MavenScope.REPOSITORY.equals(scope);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MavenRepositoryDescriptor scan(ArtifactSearchResult artifactSearchResult, String path, Scope scope, Scanner scanner) throws IOException {
-        ArtifactProvider artifactProvider = scanner.getContext().peek(ArtifactProvider.class);
+    public void scan(ArtifactSearchResult artifactSearchResult) throws IOException {
         // register file resolver strategy to identify repository artifacts
         scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
         scanner.getContext().push(ArtifactResolver.class, artifactProvider.getArtifactResolver());
@@ -95,7 +69,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
             scanner.getContext().pop(ArtifactResolver.class);
             scanner.getContext().pop(FileResolver.class);
         }
-        return artifactProvider.getRepositoryDescriptor();
     }
 
     /**
@@ -133,8 +106,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                     long lastModified = result.getLastModified();
                     LOGGER.debug("Processing '{}'.", artifactInfo);
                     boolean snapshot = modelArtifact.isSnapshot();
-                    MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, scanner,
-                            effectiveModelBuilder, cache);
+                    MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, effectiveModelBuilder, cache);
                     // Skip if the POM itself is the artifact
                     if (!EXTENSION_POM.equals(artifactInfo.getPackaging())) { // Note: packaging can be null
                         Coordinates artifactCoordinates = new ArtifactInfoCoordinates(artifactInfo, modelArtifact.getBaseVersion(), snapshot);
@@ -145,14 +117,14 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                                 ArtifactResult artifactResult = result.getArtifactResult().get();
                                 Artifact artifact = artifactResult.getArtifact();
                                 LOGGER.info("Scanning artifact '{}'.", artifact);
-                                Descriptor descriptor = scan(artifactResult.getArtifact(), scanner);
+                                Descriptor descriptor = scan(artifactResult.getArtifact());
                                 mavenArtifactDescriptor = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
                                 MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, artifactCoordinates);
                             } else {
                                 // Resolve artifact without scanning
                                 mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
                             }
-                            markReleaseOrSnaphot(mavenArtifactDescriptor, artifactCoordinates, snapshot, lastModified, store);
+                            markReleaseOrSnaphot(mavenArtifactDescriptor, artifactCoordinates, snapshot, lastModified);
                             // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g.
                             // due to an invalid model)
                             if (!modelDescriptor.getDescribes().contains(mavenArtifactDescriptor)) {
@@ -187,8 +159,6 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *            The last modified timestamp.
      * @param repositoryDescriptor
      *            The {@link MavenRepositoryDescriptor}.
-     * @param scanner
-     *            The {@link Scanner}
      * @param effectiveModelBuilder
      *            The {@link PomModelBuilder}.
      * @param cache
@@ -196,7 +166,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      * @return The {@link MavenPomXmlDescriptor} representing the model.
      */
     private MavenPomXmlDescriptor getModel(Artifact modelArtifact, boolean snapshot, long lastModified, MavenRepositoryDescriptor repositoryDescriptor,
-            Scanner scanner, PomModelBuilder effectiveModelBuilder, Cache<String, MavenPomXmlDescriptor> cache) {
+            PomModelBuilder effectiveModelBuilder, Cache<String, MavenPomXmlDescriptor> cache) {
         AetherArtifactCoordinates modelCoordinates = new AetherArtifactCoordinates(modelArtifact);
         String fqn = MavenArtifactHelper.getId(modelCoordinates);
         return cache.get(fqn, key -> {
@@ -205,11 +175,11 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                 scanner.getContext().push(PomModelBuilder.class, effectiveModelBuilder);
                 try {
                     LOGGER.info("Scanning model '{}'.", modelArtifact);
-                    modelDescriptor = scan(modelArtifact, scanner);
+                    modelDescriptor = scan(modelArtifact);
                 } finally {
                     scanner.getContext().pop(PomModelBuilder.class);
                 }
-                markReleaseOrSnaphot(modelDescriptor, modelCoordinates, snapshot, lastModified, scanner.getContext().getStore());
+                markReleaseOrSnaphot(modelDescriptor, modelCoordinates, snapshot, lastModified);
                 repositoryDescriptor.getContainedModels().add(modelDescriptor);
             }
             return modelDescriptor;
@@ -221,13 +191,11 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *
      * @param artifact
      *            The {@link Artifact}.
-     * @param scanner
-     *            The scanner.
      * @param <D>
      *            The expected {@link Descriptor} type.
      * @return The {@link Descriptor}.
      */
-    private <D extends Descriptor> D scan(Artifact artifact, Scanner scanner) {
+    private <D extends Descriptor> D scan(Artifact artifact) {
         File artifactFile = artifact.getFile();
         try {
             return scanner.scan(artifactFile, artifactFile.getAbsolutePath(), null);
@@ -250,13 +218,12 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *            if the artifact is a snapshot
      * @param lastModified
      *            last modified date
-     * @param store
-     *            the store
      * @return The {@link ArtifactInfoDescriptor}.
      */
-    private <D extends MavenDescriptor> ArtifactInfoDescriptor markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot, Long lastModified,
-            Store store) {
+    private <D extends MavenDescriptor> ArtifactInfoDescriptor markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot,
+            Long lastModified) {
         ArtifactInfoDescriptor artifactInfoDescriptor;
+        Store store = scanner.getContext().getStore();
         if (snapshot) {
             artifactInfoDescriptor = store.addDescriptorType(descriptor, MavenSnapshotDescriptor.class);
         } else {
@@ -267,27 +234,5 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
         }
         artifactInfoDescriptor.setLastModified(lastModified);
         return artifactInfoDescriptor;
-    }
-
-    /**
-     * Extracts a list of artifact filters from the given property.
-     *
-     * @param propertyName
-     *            The name of the property.
-     * @return The list of artifact patterns.
-     */
-    private List<String> getFilterPattern(String propertyName) {
-        String patterns = getStringProperty(propertyName, null);
-        if (patterns == null) {
-            return null;
-        }
-        List<String> result = new ArrayList<>();
-        for (String pattern : patterns.split(",")) {
-            String trimmed = pattern.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
     }
 }

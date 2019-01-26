@@ -12,7 +12,7 @@ import org.javastack.httpd.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-public abstract class AbstractMavenRepositoryTest extends AbstractPluginIT {
+public abstract class AbstractMavenRepositoryIT extends AbstractPluginIT {
 
     protected static final int REPO_SERVER_PORT = 9095;
 

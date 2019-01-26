@@ -3,13 +3,13 @@ package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
-import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
-import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenRepositoryResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
@@ -26,10 +26,17 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
 
     public static final String DEFAULT_M2REPO_DIR = "./jqassistant/data/m2repo";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenRepositoryScannerPlugin.class);
-
+    private static final String PROPERTY_NAME_ARTIFACTS_KEEP = "m2repo.artifacts.keep";
+    private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
+    private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
+    private static final String PROPERTY_NAME_FILTER_EXCLUDES = "m2repo.filter.excludes";
     private static final String PROPERTY_NAME_DIRECTORY = "m2repo.directory";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenRepositoryScannerPlugin.class);
+
+    private boolean keepArtifacts;
+    private boolean scanArtifacts;
+    private ArtifactFilter artifactFilter;
     private File localDirectory;
 
     /** {@inheritDoc} */
@@ -41,7 +48,34 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
     /** {@inheritDoc} */
     @Override
     public void configure() {
+        scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, true);
+        keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
+        List<String> includeFilter = getFilterPattern(PROPERTY_NAME_FILTER_INCLUDES);
+        List<String> excludeFilter = getFilterPattern(PROPERTY_NAME_FILTER_EXCLUDES);
+        artifactFilter = new ArtifactFilter(includeFilter, excludeFilter);
         localDirectory = new File(getStringProperty(PROPERTY_NAME_DIRECTORY, DEFAULT_M2REPO_DIR));
+    }
+
+    /**
+     * Extracts a list of artifact filters from the given property.
+     *
+     * @param propertyName
+     *            The name of the property.
+     * @return The list of artifact patterns.
+     */
+    private List<String> getFilterPattern(String propertyName) {
+        String patterns = getStringProperty(propertyName, null);
+        if (patterns == null) {
+            return null;
+        }
+        List<String> result = new ArrayList<>();
+        for (String pattern : patterns.split(",")) {
+            String trimmed = pattern.trim();
+            if (!trimmed.isEmpty()) {
+                result.add(trimmed);
+            }
+        }
+        return result;
     }
 
     /** {@inheritDoc} */
@@ -53,31 +87,18 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
         }
         MavenRepositoryDescriptor repoDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
         AetherArtifactProvider artifactProvider = new AetherArtifactProvider(repositoryUrl, repoDescriptor, localDirectory);
-        scan(artifactProvider, scanner);
-        return repoDescriptor;
-    }
-
-    /**
-     * Scan the repository represented by the given artifact provider.
-     * 
-     * @param artifactProvider
-     *            The artifact provider.
-     * @throws IOException
-     *             If scanning fails.
-     */
-    public void scan(AetherArtifactProvider artifactProvider, Scanner scanner) throws IOException {
+        ArtifactSearchResultScanner artifactSearchResultScanner = new ArtifactSearchResultScanner(scanner, artifactProvider, artifactFilter, scanArtifacts,
+                keepArtifacts);
         MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
         try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
             Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
-            ScannerContext context = scanner.getContext();
             mavenIndex.updateIndex();
             try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(lastScanTime)) {
-                context.push(ArtifactProvider.class, artifactProvider);
-                scanner.scan(searchResult, searchResult.toString(), MavenScope.REPOSITORY);
-            } finally {
-                context.pop(ArtifactProvider.class);
+                artifactSearchResultScanner.scan(searchResult);
             }
         }
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
+        return repoDescriptor;
     }
+
 }

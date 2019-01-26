@@ -8,7 +8,7 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 
 import org.junit.jupiter.api.Test;
 
-public class MavenCentralScanMT extends AbstractMavenRepositoryTest {
+public class MavenCentralScanMT extends AbstractMavenRepositoryIT {
 
     /**
      * URL of M2 central mirror provided by Sonatype Nexus 3
