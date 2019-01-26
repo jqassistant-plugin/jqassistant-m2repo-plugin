@@ -12,9 +12,7 @@ Examples:
 ----
 
 TIP: The plugin supports incremental runs on a maven repository. In this case only new artifacts will be downloaded and
-scanned.
-
-TIP: For incremental scanning it is necessary that the exactly the same URL is provided on sub-sequent scans.
+scanned. For incremental scanning it is necessary that the exactly the same URL is provided on sub-sequent scans.
 
 === Configuration
 
@@ -47,13 +45,14 @@ A remote Maven repository.
 .Relations of `:Maven:Repository`
 [options="header"]
 |====
-| Name              | Target label(s)            | Cardinality | Description
-| CONTAINS_POM      | <<:Maven:Pom:Xml>>  | 0..n | References the POMs in the repository
-| CONTAINS_ARTIFACT | <<:Maven:Artifact>> | 0..n | References the artifacts in the repository
+| Name              | Target label(s)     | Cardinality | Description
+| CONTAINS          | <<:Maven:GroupId>>  | 0..n        | The artifact groups contained in the repository
+| CONTAINS_POM      | <<:Maven:Pom:Xml>>  | 0..n        | References the POMs in the repository
+| CONTAINS_ARTIFACT | <<:Maven:Artifact>> | 0..n        | References the artifacts in the repository
 |====
 
 [[:Release]]
-=== Nodes labled with `:Release`
+=== Nodes labled with `:Maven:Release`
 
 Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven versions.
 
@@ -66,7 +65,7 @@ Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven version
 |====
 
 [[:Snapshot]]
-=== Nodes labled with `:Snapshot`
+=== Nodes labled with `:Maven:Snapshot`
 
 Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot versions.
 
@@ -78,4 +77,63 @@ Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot version
 | lastModifed | timestamp of the last modification that is reported for the artifact
 |====
 
-NOTE: Handling of snapshot versions is not
+
+[[:Maven:GroupId]]
+=== Nodes labled with `:Maven:GroupId`
+
+Represents a group coordinate within <<:Maven:Repository>>.
+
+.Properties of `:GroupId`
+[options="header"]
+|====
+| Name        | Description
+| name        | The group name
+|====
+
+.Relations of `:Maven:GroupId`
+[options="header"]
+|====
+| Name              | Target label(s)       | Cardinality | Description
+| CONTAINS          | <<:Maven:ArtifactId>> | 0..n        | The contained artifacts
+|====
+
+
+[[:Maven:ArtifactId]]
+=== Nodes labled with `:Maven:ArtifactId`
+
+Represents artifact coordinate within <<:Maven:GroupId>>.
+
+.Properties of `:ArtifactId`
+[options="header"]
+|====
+| Name        | Description
+| name        | The artifact name
+|====
+
+.Relations of `:Maven:ArtifactId`
+[options="header"]
+|====
+| Name              | Target label(s)    | Cardinality | Description
+| CONTAINS          | <<:Maven:Version>> | 0..n        | The contained artifact versions
+|====
+
+
+[[:Maven:Version]]
+=== Nodes labled with `:Maven:Version`
+
+Represents a version coordinate within <<:Maven:ArtifactId>>.
+
+.Properties of `:Version`
+[options="header"]
+|====
+| Name        | Description
+| name        | The version
+|====
+
+.Relations of `:Maven:Version`
+[options="header"]
+|====
+| Name              | Target label(s)     | Cardinality | Description
+| CONTAINS          | <<:Maven:Artifact>> | 0..n        | The contained artifacts
+|====
+

@@ -2,6 +2,8 @@ package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,6 +13,7 @@ import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
+import com.buschmais.jqassistant.plugin.common.api.model.ArtifactDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
@@ -28,6 +31,7 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.base.Stopwatch;
 import org.apache.maven.index.ArtifactInfo;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -42,7 +46,7 @@ public class ArtifactSearchResultScanner {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactSearchResultScanner.class);
 
     private static final String EXTENSION_POM = "pom";
-    private static final int QUEUE_CAPACITY = 100;
+    private static final int QUEUE_CAPACITY = 500;
 
     private final Scanner scanner;
     private final ArtifactProvider artifactProvider;
@@ -64,7 +68,7 @@ public class ArtifactSearchResultScanner {
         scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
         scanner.getContext().push(ArtifactResolver.class, artifactProvider.getArtifactResolver());
         try {
-            resolveAndScan(scanner, artifactProvider, artifactSearchResult);
+            resolveAndScan(artifactSearchResult);
         } finally {
             scanner.getContext().pop(ArtifactResolver.class);
             scanner.getContext().pop(FileResolver.class);
@@ -75,14 +79,10 @@ public class ArtifactSearchResultScanner {
      * Resolves, scans and add the artifact to the
      * {@link MavenRepositoryDescriptor}.
      *
-     * @param scanner
-     *            the {@link Scanner}
-     * @param artifactProvider
-     *            the {@link AetherArtifactProvider}
      * @param artifactSearchResult
      *            the {@link ArtifactSearchResult}
      */
-    private void resolveAndScan(Scanner scanner, ArtifactProvider artifactProvider, ArtifactSearchResult artifactSearchResult) throws IOException {
+    private void resolveAndScan(ArtifactSearchResult artifactSearchResult) throws IOException {
         ScannerContext context = scanner.getContext();
         Store store = context.getStore();
         PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
@@ -94,9 +94,10 @@ public class ArtifactSearchResultScanner {
 
         Cache<String, MavenPomXmlDescriptor> cache = Caffeine.newBuilder().maximumSize(256).build();
 
+        LOGGER.info("Starting scan.");
+        Stopwatch stopwatch = Stopwatch.createStarted();
         long artifactCount = 0;
         ArtifactTask.Result result;
-        LOGGER.info("Starting scan.");
         try {
             do {
                 result = queue.take();
@@ -109,28 +110,18 @@ public class ArtifactSearchResultScanner {
                     MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, effectiveModelBuilder, cache);
                     // Skip if the POM itself is the artifact
                     if (!EXTENSION_POM.equals(artifactInfo.getPackaging())) { // Note: packaging can be null
-                        Coordinates artifactCoordinates = new ArtifactInfoCoordinates(artifactInfo, modelArtifact.getBaseVersion(), snapshot);
+                        Coordinates artifactCoordinates = new ArtifactInfoCoordinates(artifactInfo);
                         MavenArtifactDescriptor mavenArtifactDescriptor = repositoryDescriptor.findArtifact(MavenArtifactHelper.getId(artifactCoordinates));
                         if (mavenArtifactDescriptor == null) {
-                            if (result.getArtifactResult().isPresent()) {
-                                // Scan artifact from repository
-                                ArtifactResult artifactResult = result.getArtifactResult().get();
-                                Artifact artifact = artifactResult.getArtifact();
-                                LOGGER.info("Scanning artifact '{}'.", artifact);
-                                Descriptor descriptor = scan(artifactResult.getArtifact());
-                                mavenArtifactDescriptor = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
-                                MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, artifactCoordinates);
-                            } else {
-                                // Resolve artifact without scanning
-                                mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
-                            }
-                            markReleaseOrSnaphot(mavenArtifactDescriptor, artifactCoordinates, snapshot, lastModified);
+                            mavenArtifactDescriptor = getArtifact(artifactCoordinates, result.getArtifactResult(), snapshot, lastModified);
                             // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g.
                             // due to an invalid model)
                             if (!modelDescriptor.getDescribes().contains(mavenArtifactDescriptor)) {
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                             }
                             repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
+                            repositoryDescriptor.resolveVersion(artifactCoordinates.getGroup(), artifactCoordinates.getName(), artifactCoordinates.getVersion())
+                                    .getArtifacts().add(mavenArtifactDescriptor);
                             artifactCount++;
                         }
                     }
@@ -140,12 +131,13 @@ public class ArtifactSearchResultScanner {
                     }
                 }
             } while (result != ArtifactTask.Result.LAST);
-            LOGGER.info("Finished scan: {} artifacts.", artifactCount);
         } catch (InterruptedException e) {
             throw new IOException("Interrupted while waiting for artifact result", e);
         } finally {
             pool.shutdownNow();
         }
+        Duration duration = stopwatch.elapsed();
+        LOGGER.info("Finished scan: {} artifacts (duration: {}).", artifactCount, duration);
     }
 
     /**
@@ -170,7 +162,7 @@ public class ArtifactSearchResultScanner {
         AetherArtifactCoordinates modelCoordinates = new AetherArtifactCoordinates(modelArtifact);
         String fqn = MavenArtifactHelper.getId(modelCoordinates);
         return cache.get(fqn, key -> {
-            MavenPomXmlDescriptor modelDescriptor = repositoryDescriptor.findModel(key);
+            MavenPomXmlDescriptor modelDescriptor = snapshot ? repositoryDescriptor.findSnapshotModel(key) : repositoryDescriptor.findReleaseModel(key);
             if (modelDescriptor == null) {
                 scanner.getContext().push(PomModelBuilder.class, effectiveModelBuilder);
                 try {
@@ -184,6 +176,36 @@ public class ArtifactSearchResultScanner {
             }
             return modelDescriptor;
         });
+    }
+
+    /**
+     * Get the artifact for the given {@link Coordinates}.
+     * 
+     * @param artifactCoordinates
+     *            The {@link Coordinates}.
+     * @param artifactResult
+     *            The optional {@link ArtifactResult}.
+     * @param snapshot
+     *            <code>true</code> if the artifact represents a snapshot.
+     * @param lastModified
+     *            The last modified timestamp.
+     * @return The {@link MavenArtifactDescriptor}.
+     */
+    private MavenArtifactDescriptor getArtifact(Coordinates artifactCoordinates, Optional<ArtifactResult> artifactResult, boolean snapshot, long lastModified) {
+        MavenArtifactDescriptor mavenArtifactDescriptor;
+        if (artifactResult.isPresent()) {
+            // Scan artifact from repository
+            Artifact artifact = artifactResult.get().getArtifact();
+            LOGGER.info("Scanning artifact '{}'.", artifact);
+            ArtifactDescriptor descriptor = scan(artifact);
+            mavenArtifactDescriptor = scanner.getContext().getStore().addDescriptorType(descriptor, MavenArtifactDescriptor.class);
+            MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, artifactCoordinates);
+        } else {
+            // Resolve artifact without scanning
+            mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
+        }
+        markReleaseOrSnaphot(mavenArtifactDescriptor, artifactCoordinates, snapshot, lastModified);
+        return mavenArtifactDescriptor;
     }
 
     /**

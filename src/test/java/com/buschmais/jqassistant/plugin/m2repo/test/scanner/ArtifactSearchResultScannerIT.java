@@ -12,9 +12,7 @@ import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvid
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactFilter;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResult;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResultScanner;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.*;
 
 import org.apache.maven.index.ArtifactInfo;
 import org.apache.maven.index.MAVEN;
@@ -98,9 +96,25 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(artifact, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) artifact).getLastModified(), equalTo(LAST_MODIFIED));
             assertThat(model.getDescribes().contains(artifact), equalTo(true));
+            // Verify GAV
+            List<MavenGroupIdDescriptor> groupdIs = query("MATCH (r:Maven:Repository)-[:CONTAINS]->(g:GroupId) RETURN g").getColumn("g");
+            assertThat(groupdIs.size(), equalTo(1));
+            MavenGroupIdDescriptor groupId = groupdIs.get(0);
+            assertThat(groupId.getName(), equalTo(GROUP_ID));
+            List<MavenArtifactIdDescriptor> artifactIds = groupId.getArtifactIds();
+            assertThat(artifactIds.size(), equalTo(1));
+            MavenArtifactIdDescriptor artifactId = artifactIds.get(0);
+            assertThat(artifactId.getName(), equalTo(ARTIFACT_ID_XO_API));
+            List<MavenVersionDescriptor> versions = artifactId.getVersions();
+            assertThat(versions.size(), equalTo(1));
+            MavenVersionDescriptor version = versions.get(0);
+            assertThat(version.getName(), equalTo(VERSION_PREFIX));
+            List<MavenArtifactDescriptor> artifacts = version.getArtifacts();
+            assertThat(artifacts.size(), equalTo(1));
+            assertThat(artifacts.get(0), is(artifact));
         } finally {
             if (store.hasActiveTransaction()) {
-                store.rollbackTransaction();
+                store.commitTransaction();
             }
             stopServer();
         }
