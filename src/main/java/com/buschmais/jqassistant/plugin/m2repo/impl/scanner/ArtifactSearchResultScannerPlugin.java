@@ -17,7 +17,7 @@ import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.LastModifiedDescriptor;
+import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.AetherArtifactCoordinates;
@@ -148,13 +148,13 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                                 Descriptor descriptor = scan(artifactResult.getArtifact(), scanner);
                                 mavenArtifactDescriptor = store.addDescriptorType(descriptor, MavenArtifactDescriptor.class);
                                 MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, artifactCoordinates);
-                                MavenArtifactHelper.setId(mavenArtifactDescriptor, artifactCoordinates);
                             } else {
                                 // Resolve artifact without scanning
                                 mavenArtifactDescriptor = scanner.getContext().peek(ArtifactResolver.class).resolve(artifactCoordinates, scanner.getContext());
                             }
-                            markReleaseOrSnaphot(mavenArtifactDescriptor, snapshot, lastModified, store);
-                            // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g. due to an invalid model)
+                            markReleaseOrSnaphot(mavenArtifactDescriptor, artifactCoordinates, snapshot, lastModified, store);
+                            // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g.
+                            // due to an invalid model)
                             if (!modelDescriptor.getDescribes().contains(mavenArtifactDescriptor)) {
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                             }
@@ -162,7 +162,7 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
                             artifactCount++;
                         }
                     }
-                    if (artifactCount % 100 == 0) {
+                    if (artifactCount % 500 == 0) {
                         LOGGER.info("Processed {} artifacts.", artifactCount);
                         scanner.getContext().getStore().flush();
                     }
@@ -197,25 +197,19 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      */
     private MavenPomXmlDescriptor getModel(Artifact modelArtifact, boolean snapshot, long lastModified, MavenRepositoryDescriptor repositoryDescriptor,
             Scanner scanner, PomModelBuilder effectiveModelBuilder, Cache<String, MavenPomXmlDescriptor> cache) {
-        String coordinates = MavenArtifactHelper.getId(new AetherArtifactCoordinates(modelArtifact));
-        return cache.get(coordinates, key -> {
+        AetherArtifactCoordinates modelCoordinates = new AetherArtifactCoordinates(modelArtifact);
+        String fqn = MavenArtifactHelper.getId(modelCoordinates);
+        return cache.get(fqn, key -> {
             MavenPomXmlDescriptor modelDescriptor = repositoryDescriptor.findModel(key);
             if (modelDescriptor == null) {
                 scanner.getContext().push(PomModelBuilder.class, effectiveModelBuilder);
                 try {
                     LOGGER.info("Scanning model '{}'.", modelArtifact);
                     modelDescriptor = scan(modelArtifact, scanner);
-                    if (!key.equals(modelDescriptor.getFullQualifiedName())) {
-                        // The fqn is already set by the scanner, but may be not consistent with the
-                        // required fqn for repositories (e.g. if model could not be parsed. So it is
-                        // overridden here).
-                        LOGGER.warn("Model coordinates '{}' do not match expected '{}', overriding.", modelDescriptor.getFullQualifiedName(), key);
-                        modelDescriptor.setFullQualifiedName(key);
-                    }
                 } finally {
                     scanner.getContext().pop(PomModelBuilder.class);
                 }
-                markReleaseOrSnaphot(modelDescriptor, snapshot, lastModified, scanner.getContext().getStore());
+                markReleaseOrSnaphot(modelDescriptor, modelCoordinates, snapshot, lastModified, scanner.getContext().getStore());
                 repositoryDescriptor.getContainedModels().add(modelDescriptor);
             }
             return modelDescriptor;
@@ -250,21 +244,29 @@ public class ArtifactSearchResultScannerPlugin extends AbstractScannerPlugin<Art
      *
      * @param descriptor
      *            the descriptor
+     * @param coordinates
+     *            The {@link Coordinates}.
      * @param snapshot
      *            if the artifact is a snapshot
      * @param lastModified
      *            last modified date
      * @param store
      *            the store
+     * @return The {@link ArtifactInfoDescriptor}.
      */
-    private <D extends MavenDescriptor> void markReleaseOrSnaphot(D descriptor, boolean snapshot, Long lastModified, Store store) {
-        LastModifiedDescriptor lastModifiedDescriptor;
+    private <D extends MavenDescriptor> ArtifactInfoDescriptor markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot, Long lastModified,
+            Store store) {
+        ArtifactInfoDescriptor artifactInfoDescriptor;
         if (snapshot) {
-            lastModifiedDescriptor = store.addDescriptorType(descriptor, MavenSnapshotDescriptor.class);
+            artifactInfoDescriptor = store.addDescriptorType(descriptor, MavenSnapshotDescriptor.class);
         } else {
-            lastModifiedDescriptor = store.addDescriptorType(descriptor, MavenReleaseDescriptor.class);
+            artifactInfoDescriptor = store.addDescriptorType(descriptor, MavenReleaseDescriptor.class);
         }
-        lastModifiedDescriptor.setLastModified(lastModified);
+        if (artifactInfoDescriptor.getFullQualifiedName() == null) {
+            artifactInfoDescriptor.setFullQualifiedName(MavenArtifactHelper.getId(coordinates));
+        }
+        artifactInfoDescriptor.setLastModified(lastModified);
+        return artifactInfoDescriptor;
     }
 
     /**

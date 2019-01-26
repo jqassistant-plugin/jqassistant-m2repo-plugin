@@ -117,15 +117,6 @@ public class MavenIndex implements AutoCloseable {
     }
 
     /**
-     * Returns a timestamp of the last local repository index update.
-     * 
-     * @return A timestamp of the last local repository index update.
-     */
-    public Date getLastUpdateLocalRepo() {
-        return indexingContext.getTimestamp();
-    }
-
-    /**
      * Update the local index.
      * 
      * @throws ComponentLookupException
@@ -144,8 +135,8 @@ public class MavenIndex implements AutoCloseable {
         LOGGER.info("Updating repository index (this may take a while).");
         TransferListener listener = new AbstractTransferListener() {
             @Override
-            public void transferCompleted(TransferEvent transferEvent) {
-                LOGGER.debug("Downloading " + transferEvent.getResource().getName() + " successful");
+            public void transferStarted(TransferEvent transferEvent) {
+                LOGGER.debug("Downloading " + transferEvent.getResource().getName());
             }
 
             @Override
@@ -153,8 +144,8 @@ public class MavenIndex implements AutoCloseable {
             }
 
             @Override
-            public void transferStarted(TransferEvent transferEvent) {
-                LOGGER.debug("Downloading " + transferEvent.getResource().getName());
+            public void transferCompleted(TransferEvent transferEvent) {
+                LOGGER.debug("Downloading " + transferEvent.getResource().getName() + " successful");
             }
         };
 
@@ -165,7 +156,6 @@ public class MavenIndex implements AutoCloseable {
             info.setPassword(password);
         }
         ResourceFetcher resourceFetcher = new WagonHelper.WagonFetcher(httpWagon, listener, info, null);
-        Date lastUpdateLocalRepo = indexingContext.getTimestamp();
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(indexingContext, resourceFetcher);
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
         if (updateResult.isFullUpdate()) {
@@ -173,7 +163,7 @@ public class MavenIndex implements AutoCloseable {
         } else if (updateResult.getTimestamp() == null) {
             LOGGER.info("No update needed, index is up to date.");
         } else {
-            LOGGER.info("Received an incremental update starting from {}." , updateResult.getTimestamp());
+            LOGGER.info("Received an incremental update.");
         }
     }
 

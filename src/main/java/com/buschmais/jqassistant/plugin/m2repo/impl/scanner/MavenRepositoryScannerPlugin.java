@@ -66,20 +66,13 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
      *             If scanning fails.
      */
     public void scan(AetherArtifactProvider artifactProvider, Scanner scanner) throws IOException {
-        // the MavenRepositoryDescriptor
         MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
         try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
-            Date lastIndexUpdateTime = mavenIndex.getLastUpdateLocalRepo();
             Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
-            Date artifactsSince = lastIndexUpdateTime;
-            if (lastIndexUpdateTime == null || lastIndexUpdateTime.after(lastScanTime)) {
-                artifactsSince = lastScanTime;
-            }
-            mavenIndex.updateIndex();
-            // Search artifacts
             ScannerContext context = scanner.getContext();
-            context.push(ArtifactProvider.class, artifactProvider);
-            try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(artifactsSince)) {
+            mavenIndex.updateIndex();
+            try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(lastScanTime)) {
+                context.push(ArtifactProvider.class, artifactProvider);
                 scanner.scan(searchResult, searchResult.toString(), MavenScope.REPOSITORY);
             } finally {
                 context.pop(ArtifactProvider.class);

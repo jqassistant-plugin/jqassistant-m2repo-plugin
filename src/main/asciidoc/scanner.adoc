@@ -60,8 +60,9 @@ Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven version
 .Properties of `:Release`
 [options="header"]
 |====
-| Name      	| Description
-| lastModifed	| timestamp of the last modification that is reported for the artifact
+| Name        | Description
+| fqn         | The fully qualified name of the artifact.
+| lastModifed | Timestamp of the last modification that is reported for the artifact.
 |====
 
 [[:Snapshot]]
@@ -72,7 +73,9 @@ Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot version
 .Properties of `:Snapshot`
 [options="header"]
 |====
-| Name      	| Description
-| lastModifed	| timestamp of the last modification that is reported for the artifact
+| Name        | Description
+| fqn         | The fully qualified name of the artifact.
+| lastModifed | timestamp of the last modification that is reported for the artifact
 |====
 
+NOTE: Handling of snapshot versions is not

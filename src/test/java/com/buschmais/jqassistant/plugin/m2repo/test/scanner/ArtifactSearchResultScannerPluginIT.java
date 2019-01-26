@@ -10,7 +10,7 @@ import java.util.Map;
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.api.model.LastModifiedDescriptor;
+import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResult;
@@ -74,9 +74,10 @@ public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepository
             assertThat(model.getArtifactId(), equalTo(ARTIFACT_ID_XO_API));
             assertThat(model.getPackaging(), equalTo(PACKAGING_JAR));
             assertThat(model.getVersion(), equalTo(null));
-            assertThat(model.getFullQualifiedName(), equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION_PREFIX));
             assertThat(model, instanceOf(MavenSnapshotDescriptor.class));
-            assertThat(((MavenSnapshotDescriptor)model).getLastModified(), equalTo(LAST_MODIFIED));
+            assertThat(((MavenSnapshotDescriptor) model).getFullQualifiedName(),
+                    equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION_PREFIX));
+            assertThat(((MavenSnapshotDescriptor) model).getLastModified(), equalTo(LAST_MODIFIED));
 
             List<MavenArtifactDescriptor> containedArtifacts = repositoryDescriptor.getContainedArtifacts();
             assertThat(containedArtifacts, hasSize(1));
@@ -85,7 +86,7 @@ public class ArtifactSearchResultScannerPluginIT extends AbstractMavenRepository
             assertThat(artifact.getName(), equalTo(ARTIFACT_ID_XO_API));
             assertThat(artifact.getType(), equalTo(PACKAGING_JAR));
             assertThat(artifact.getVersion(), startsWith(VERSION_PREFIX));
-            assertThat(artifact, instanceOf(LastModifiedDescriptor.class));
+            assertThat(artifact, instanceOf(ArtifactInfoDescriptor.class));
             assertThat(artifact.getFullQualifiedName(), startsWith(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_JAR + ":" + VERSION_PREFIX));
             assertThat(artifact, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor)artifact).getLastModified(), equalTo(LAST_MODIFIED));
