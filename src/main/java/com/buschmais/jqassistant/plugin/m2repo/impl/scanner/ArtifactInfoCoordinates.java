@@ -39,4 +39,9 @@ public class ArtifactInfoCoordinates implements Coordinates {
     public String getVersion() {
         return artifactInfo.getVersion();
     }
+
+    @Override
+    public String toString() {
+        return "ArtifactInfoCoordinates{" + "artifactInfo=" + artifactInfo + '}';
+    }
 }

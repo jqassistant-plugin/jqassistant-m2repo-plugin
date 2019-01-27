@@ -21,10 +21,7 @@ import com.buschmais.jqassistant.plugin.maven3.api.artifact.AetherArtifactCoordi
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.Coordinates;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenArtifactHelper;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenPomXmlDescriptor;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.*;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.PomModelBuilder;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -124,8 +121,7 @@ public class ArtifactSearchResultScanner {
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                             }
                             repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
-                            repositoryDescriptor.resolveVersion(artifactCoordinates.getGroup(), artifactCoordinates.getName(), artifactCoordinates.getVersion())
-                                    .getArtifacts().add(mavenArtifactDescriptor);
+                            resolveGAV(repositoryDescriptor, artifactCoordinates).getArtifacts().add(mavenArtifactDescriptor);
                             artifactCount++;
                         }
                     }
@@ -209,6 +205,20 @@ public class ArtifactSearchResultScanner {
         }
         markReleaseOrSnaphot(mavenArtifactDescriptor, artifactCoordinates, snapshot, lastModified);
         return mavenArtifactDescriptor;
+    }
+
+    /**
+     * Resolve the GAV tree for the given {@link Coordinates}.
+     * 
+     * @param repositoryDescriptor
+     *            The repository.
+     * @param coordinates
+     *            The {@link Coordinates}.
+     * @return The {@link MavenVersionDescriptor} returned as leaf of the GAV tree.
+     */
+    private MavenVersionDescriptor resolveGAV(MavenRepositoryDescriptor repositoryDescriptor, Coordinates coordinates) {
+        String baseVersion = MavenArtifactHelper.getBaseVersion(coordinates);
+        return repositoryDescriptor.resolveVersion(coordinates.getGroup(), coordinates.getName(), baseVersion);
     }
 
     /**

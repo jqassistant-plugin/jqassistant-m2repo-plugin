@@ -118,27 +118,32 @@ public class ArtifactTask implements Runnable {
                     LOGGER.debug("Skipping '{}'.", artifactInfo);
                 } else {
                     Artifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
-                    try {
-                        LOGGER.debug("Fetching model '{}'.", modelArtifact);
-                        Optional<ArtifactResult> modelArtifactResult = Optional.of(this.artifactProvider.getArtifact(modelArtifact));
-                        Optional<ArtifactResult> artifactResult;
-                        if (fetchArtifact && !artifact.getExtension().equals(EXTENSION_POM)) {
-                            LOGGER.debug("Fetching artifact '{}'.", artifact);
-                            artifactResult = Optional.of(artifactProvider.getArtifact(artifact));
-                        } else {
-                            artifactResult = Optional.empty();
-                        }
-                        Result result = new Result(artifactInfo, modelArtifactResult, artifactResult);
-                        queue.put(result);
-                    } catch (ArtifactResolutionException e) {
-                        LOGGER.warn("Cannot resolve artifact '" + artifact + "'.", e);
+                    LOGGER.debug("Fetching model '{}'.", modelArtifact);
+                    Optional<ArtifactResult> modelArtifactResult = getArtifact(modelArtifact);
+                    Optional<ArtifactResult> artifactResult;
+                    if (fetchArtifact && !artifact.getExtension().equals(EXTENSION_POM)) {
+                        LOGGER.debug("Fetching artifact '{}'.", artifact);
+                        artifactResult = getArtifact(artifact);
+                    } else {
+                        artifactResult = Optional.empty();
                     }
+                    Result result = new Result(artifactInfo, modelArtifactResult, artifactResult);
+                    queue.put(result);
                 }
             }
             queue.put(Result.LAST);
         } catch (InterruptedException e) {
             LOGGER.warn("Task has been interrupted.", e);
         }
+    }
+
+    private Optional<ArtifactResult> getArtifact(Artifact artifact) {
+        try {
+            return Optional.of(this.artifactProvider.getArtifact(artifact));
+        } catch (ArtifactResolutionException e) {
+            LOGGER.warn("Cannot resolve artifact '" + artifact + "'.", e);
+        }
+        return Optional.empty();
     }
 
 }

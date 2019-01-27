@@ -28,7 +28,8 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
     private static final String GROUP_ID = "com.buschmais.xo";
     private static final String ARTIFACT_ID_XO_API = "xo.api";
     private static final String PACKAGING_JAR = "jar";
-    private static final String VERSION_PREFIX = "0.5.0-SNAPSHOT";
+    private static final String VERSION = "0.5.0-20141126.194537-53";
+    private static final String BASE_VERSION = "0.5.0-SNAPSHOT";
     private static final long LAST_MODIFIED = -1;
     private static final String PACKAGING_POM = "pom";
 
@@ -61,7 +62,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             ArtifactInfo artifactInfo = new ArtifactInfo();
             artifactInfo.setFieldValue(MAVEN.GROUP_ID, GROUP_ID);
             artifactInfo.setFieldValue(MAVEN.ARTIFACT_ID, ARTIFACT_ID_XO_API);
-            artifactInfo.setFieldValue(MAVEN.VERSION, "0.5.0-SNAPSHOT");
+            artifactInfo.setFieldValue(MAVEN.VERSION, VERSION);
             artifactInfo.setFieldValue(MAVEN.PACKAGING, PACKAGING_JAR);
 
             resultScanner.scan(new ArtifactSearchResult(asList(artifactInfo)));
@@ -81,7 +82,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(model.getVersion(), equalTo(null));
             assertThat(model, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) model).getFullQualifiedName(),
-                    equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION_PREFIX));
+                    equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION));
             assertThat(((MavenSnapshotDescriptor) model).getLastModified(), equalTo(LAST_MODIFIED));
             // Verify artifact
             List<MavenArtifactDescriptor> containedArtifacts = repositoryDescriptor.getContainedArtifacts();
@@ -90,9 +91,9 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(artifact.getGroup(), equalTo(GROUP_ID));
             assertThat(artifact.getName(), equalTo(ARTIFACT_ID_XO_API));
             assertThat(artifact.getType(), equalTo(PACKAGING_JAR));
-            assertThat(artifact.getVersion(), startsWith(VERSION_PREFIX));
+            assertThat(artifact.getVersion(), startsWith(VERSION));
             assertThat(artifact, instanceOf(ArtifactInfoDescriptor.class));
-            assertThat(artifact.getFullQualifiedName(), startsWith(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_JAR + ":" + VERSION_PREFIX));
+            assertThat(artifact.getFullQualifiedName(), startsWith(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_JAR + ":" + VERSION));
             assertThat(artifact, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) artifact).getLastModified(), equalTo(LAST_MODIFIED));
             assertThat(model.getDescribes().contains(artifact), equalTo(true));
@@ -108,7 +109,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             List<MavenVersionDescriptor> versions = artifactId.getVersions();
             assertThat(versions.size(), equalTo(1));
             MavenVersionDescriptor version = versions.get(0);
-            assertThat(version.getName(), equalTo(VERSION_PREFIX));
+            assertThat(version.getName(), equalTo(BASE_VERSION));
             List<MavenArtifactDescriptor> artifacts = version.getArtifacts();
             assertThat(artifacts.size(), equalTo(1));
             assertThat(artifacts.get(0), is(artifact));
