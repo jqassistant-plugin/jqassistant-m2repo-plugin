@@ -25,37 +25,44 @@ public class ArtifactTask implements Runnable {
      */
     public static class Result {
 
-        public static final Result LAST = new Result(null, null, null, -1);
+        /**
+         * Marker indicating that no more results are available.
+         */
+        public static final Result LAST = new Result(null, null, null);
 
         private final ArtifactInfo artifactInfo;
 
-        private final ArtifactResult modelArtifactResult;
+        private final Optional<ArtifactResult> modelArtifactResult;
 
         private final Optional<ArtifactResult> artifactResult;
 
-        private final long lastModified;
-
-        public Result(ArtifactInfo artifactInfo, ArtifactResult modelArtifactResult, Optional<ArtifactResult> artifactResult, long lastModified) {
+        /**
+         * Represents the result of resolving an artifact and its model based on an
+         * {@link ArtifactInfo}.
+         * 
+         * @param artifactInfo
+         *            The {@link ArtifactInfo}.
+         * @param modelArtifactResult
+         *            The {@link ArtifactResult} of the model.
+         * @param artifactResult
+         *            The {@link ArtifactResult} of the artifact.
+         */
+        private Result(ArtifactInfo artifactInfo, Optional<ArtifactResult> modelArtifactResult, Optional<ArtifactResult> artifactResult) {
             this.artifactInfo = artifactInfo;
             this.modelArtifactResult = modelArtifactResult;
             this.artifactResult = artifactResult;
-            this.lastModified = lastModified;
         }
 
         public ArtifactInfo getArtifactInfo() {
             return artifactInfo;
         }
 
-        public ArtifactResult getModelArtifactResult() {
+        public Optional<ArtifactResult> getModelArtifactResult() {
             return modelArtifactResult;
         }
 
         public Optional<ArtifactResult> getArtifactResult() {
             return artifactResult;
-        }
-
-        public long getLastModified() {
-            return lastModified;
         }
     }
 
@@ -106,23 +113,22 @@ public class ArtifactTask implements Runnable {
                 String classifier = artifactInfo.getClassifier();
                 String packaging = artifactInfo.getPackaging();
                 String version = artifactInfo.getVersion();
-                long lastModified = artifactInfo.getLastModified();
                 Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
                 if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
                     LOGGER.debug("Skipping '{}'.", artifactInfo);
                 } else {
                     Artifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
-                    Optional<ArtifactResult> artifactResult;
                     try {
                         LOGGER.debug("Fetching model '{}'.", modelArtifact);
-                        ArtifactResult modelArtifactResult = this.artifactProvider.getArtifact(modelArtifact);
+                        Optional<ArtifactResult> modelArtifactResult = Optional.of(this.artifactProvider.getArtifact(modelArtifact));
+                        Optional<ArtifactResult> artifactResult;
                         if (fetchArtifact && !artifact.getExtension().equals(EXTENSION_POM)) {
                             LOGGER.debug("Fetching artifact '{}'.", artifact);
                             artifactResult = Optional.of(artifactProvider.getArtifact(artifact));
                         } else {
                             artifactResult = Optional.empty();
                         }
-                        Result result = new Result(artifactInfo, modelArtifactResult, artifactResult, lastModified);
+                        Result result = new Result(artifactInfo, modelArtifactResult, artifactResult);
                         queue.put(result);
                     } catch (ArtifactResolutionException e) {
                         LOGGER.warn("Cannot resolve artifact '" + artifact + "'.", e);

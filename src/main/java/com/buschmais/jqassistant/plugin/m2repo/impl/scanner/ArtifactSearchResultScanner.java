@@ -103,8 +103,8 @@ public class ArtifactSearchResultScanner {
                 result = queue.take();
                 if (result != ArtifactTask.Result.LAST) {
                     ArtifactInfo artifactInfo = result.getArtifactInfo();
-                    Artifact modelArtifact = result.getModelArtifactResult().getArtifact();
-                    long lastModified = result.getLastModified();
+                    long lastModified = artifactInfo.getLastModified();
+                    Artifact modelArtifact = result.getModelArtifactResult().get().getArtifact();
                     LOGGER.debug("Processing '{}'.", artifactInfo);
                     boolean snapshot = modelArtifact.isSnapshot();
                     MavenPomXmlDescriptor modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, effectiveModelBuilder, cache);
