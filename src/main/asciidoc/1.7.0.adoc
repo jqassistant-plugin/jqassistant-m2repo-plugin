@@ -1,4 +1,6 @@
 ifndef::jqa-in-manual[== Version 1.7.0]
 ifdef::jqa-in-manual[== M2 Repository Plugin 1.7.0]
 
+- Improved repository scanner to correctly handle SNAPSHOTS and build up a hierarchical GAV structure
 - Download artifacts from repository in background while scanning to improve performance
+- Default value of property `m2repo.artifacts.scan` changed to `false`, i.e. only models are scanned by default

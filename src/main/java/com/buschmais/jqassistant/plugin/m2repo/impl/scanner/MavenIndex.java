@@ -103,6 +103,7 @@ public class MavenIndex implements AutoCloseable {
                 repoUrl.toString(), null, true, true, indexers);
     }
 
+    @Override
     public void close() throws IOException {
         indexer.closeIndexingContext(indexingContext, false);
     }

@@ -22,7 +22,9 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
         try {
             startServer("1");
             store.beginTransaction();
-            getScanner(getScannerProperties()).scan(new URL(TEST_REPOSITORY_URL), TEST_REPOSITORY_URL, MavenScope.REPOSITORY);
+            Map<String, Object> scannerProperties = getScannerProperties();
+            scannerProperties.put("m2repo.artifacts.scan", "true");
+            getScanner(scannerProperties).scan(new URL(TEST_REPOSITORY_URL), TEST_REPOSITORY_URL, MavenScope.REPOSITORY);
 
             Long countJarNodes = store.executeQuery("MATCH (n:Maven:Artifact:Jar) RETURN count(n) as nodes").getSingleResult().get("nodes", Long.class);
             assertThat("Number of jar nodes is wrong.", countJarNodes, equalTo(40l));
@@ -30,7 +32,7 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
             Map<String, Object> params = new HashMap<>();
             params.put("repoUrl", TEST_REPOSITORY_URL);
             MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository{url:{repoUrl}}) RETURN r", params).getSingleResult()
-                    .get("r", MavenRepositoryDescriptor.class);
+                .get("r", MavenRepositoryDescriptor.class);
             assertThat(repositoryDescriptor, notNullValue());
             assertThat(repositoryDescriptor.getUrl(), equalTo(TEST_REPOSITORY_URL));
             assertThat(repositoryDescriptor.getContainedModels(), hasSize(9));

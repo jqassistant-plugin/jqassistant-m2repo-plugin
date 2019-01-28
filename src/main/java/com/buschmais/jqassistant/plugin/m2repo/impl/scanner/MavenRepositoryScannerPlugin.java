@@ -48,7 +48,7 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
     /** {@inheritDoc} */
     @Override
     public void configure() {
-        scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, true);
+        scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, false);
         keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
         List<String> includeFilter = getFilterPattern(PROPERTY_NAME_FILTER_INCLUDES);
         List<String> excludeFilter = getFilterPattern(PROPERTY_NAME_FILTER_EXCLUDES);
