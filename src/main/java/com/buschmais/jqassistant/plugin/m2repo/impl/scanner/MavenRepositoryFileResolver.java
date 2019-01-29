@@ -10,7 +10,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * A file resolver strategy for a local maven repository.
- * 
+ * <p>
  * If a file is given which is part of the local maven repository then this
  * strategy will lookup an existing artifact descriptor.
  */
@@ -23,8 +23,7 @@ public class MavenRepositoryFileResolver extends AbstractFileResolver {
     /**
      * Constructor.
      *
-     * @param repositoryDescriptor
-     *            The descriptor representing the repository.
+     * @param repositoryDescriptor The descriptor representing the repository.
      */
     public MavenRepositoryFileResolver(MavenRepositoryDescriptor repositoryDescriptor) {
         this.repositoryDescriptor = repositoryDescriptor;
@@ -37,7 +36,6 @@ public class MavenRepositoryFileResolver extends AbstractFileResolver {
 
     @Override
     public <D extends FileDescriptor> D match(String containedPath, Class<D> type, ScannerContext context) {
-        FileDescriptor fileDescriptor = cache.get(containedPath, path -> repositoryDescriptor.findFile(containedPath));
-        return toFileDescriptor(fileDescriptor, type, containedPath, context);
+        return getOrCreateAs(containedPath, type, path -> repositoryDescriptor.findFile(containedPath), context);
     }
 }
