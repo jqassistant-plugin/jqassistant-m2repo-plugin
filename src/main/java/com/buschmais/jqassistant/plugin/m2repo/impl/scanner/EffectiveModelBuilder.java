@@ -55,7 +55,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
     }
 
     @Override
-    public Model getModel(final File pomFile) throws IOException {
+    public Model getModel(File pomFile) throws IOException {
         DefaultModelBuilder builder = new DefaultModelBuilderFactory().newInstance();
         ModelBuildingRequest req = new DefaultModelBuildingRequest();
         req.setProcessPlugins(false);
