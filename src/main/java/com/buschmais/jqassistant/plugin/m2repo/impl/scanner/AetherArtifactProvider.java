@@ -90,7 +90,7 @@ public class AetherArtifactProvider implements ArtifactProvider {
         repository = new RemoteRepository.Builder(repositoryId, "default", url).setAuthentication(auth).build();
         repositorySystem = newRepositorySystem();
         this.repositoryFileResolver = new MavenRepositoryFileResolver(repositoryDescriptor);
-        this.repositoryRoot = new File(workDirectory, repositoryId);
+        this.repositoryRoot = new File(workDirectory, repositoryId).getAbsoluteFile();
         this.repositoryArtifactResolver = new MavenRepositoryArtifactResolver(repositoryRoot, repositoryFileResolver);
         LOGGER.info("Using local repository '{}' for URL '{}'", repositoryRoot.getAbsolutePath(), url);
         session = newRepositorySystemSession(repositorySystem, repositoryRoot);

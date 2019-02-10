@@ -106,10 +106,12 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(artifactIds.size(), equalTo(1));
             MavenArtifactIdDescriptor artifactId = artifactIds.get(0);
             assertThat(artifactId.getName(), equalTo(ARTIFACT_ID_XO_API));
+            assertThat(artifactId.getFullQualifiedName(), equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API));
             List<MavenVersionDescriptor> versions = artifactId.getVersions();
             assertThat(versions.size(), equalTo(1));
             MavenVersionDescriptor version = versions.get(0);
             assertThat(version.getName(), equalTo(BASE_VERSION));
+            assertThat(version.getFullQualifiedName(), equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + BASE_VERSION));
             List<MavenArtifactDescriptor> artifacts = version.getArtifacts();
             assertThat(artifacts.size(), equalTo(1));
             assertThat(artifacts.get(0), is(artifact));
