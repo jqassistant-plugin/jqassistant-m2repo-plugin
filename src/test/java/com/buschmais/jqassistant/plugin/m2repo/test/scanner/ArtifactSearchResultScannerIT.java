@@ -64,8 +64,9 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             artifactInfo.setFieldValue(MAVEN.ARTIFACT_ID, ARTIFACT_ID_XO_API);
             artifactInfo.setFieldValue(MAVEN.VERSION, VERSION);
             artifactInfo.setFieldValue(MAVEN.PACKAGING, PACKAGING_JAR);
+            List<ArtifactInfo> artifactInfos = asList(artifactInfo);
 
-            resultScanner.scan(new ArtifactSearchResult(asList(artifactInfo)));
+            resultScanner.scan(new ArtifactSearchResult(artifactInfos, artifactInfos.size()));
 
             assertThat("Expecting a directory for the local Maven repository.", new File(localRepositoryDirectory, "localhost/" + REPO_SERVER_PORT).exists(),
                     equalTo(true));

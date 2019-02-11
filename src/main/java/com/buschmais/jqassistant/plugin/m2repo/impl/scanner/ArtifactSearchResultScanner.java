@@ -126,11 +126,11 @@ public class ArtifactSearchResultScanner {
                             }
                             repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
                             gavResolver.resolve(artifactCoordinates).getArtifacts().add(mavenArtifactDescriptor);
-                            artifactCount++;
                         }
                     }
+                    artifactCount++;
                     if (artifactCount % 500 == 0) {
-                        LOGGER.info("Processed {} artifacts (duration: {}).", artifactCount, ofMillis(stopwatch.getTime()));
+                        LOGGER.info("Processed {}/{} artifacts (duration: {}).", artifactCount, artifactSearchResult.getSize(), ofMillis(stopwatch.getTime()));
                         scanner.getContext().getStore().flush();
                     }
                 }

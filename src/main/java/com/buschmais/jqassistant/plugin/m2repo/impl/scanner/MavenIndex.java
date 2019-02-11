@@ -114,7 +114,8 @@ public class MavenIndex implements AutoCloseable {
         Query query = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression(Field.NOT_PRESENT));
         IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(indexingContext),
                 (ctx, ai) -> startDateMillis < ai.getLastModified());
-        return new ArtifactSearchResult(indexer.searchIterator(request));
+        IteratorSearchResponse artifactInfos = indexer.searchIterator(request);
+        return new ArtifactSearchResult(artifactInfos, artifactInfos.getTotalHitsCount());
     }
 
     /**

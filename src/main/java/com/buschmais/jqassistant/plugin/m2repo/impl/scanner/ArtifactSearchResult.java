@@ -13,8 +13,20 @@ public class ArtifactSearchResult implements Iterable<ArtifactInfo>, Closeable {
 
     private final Iterable<ArtifactInfo> artifactInfos;
 
-    public ArtifactSearchResult(Iterable<ArtifactInfo> artifactInfos) {
+    private final int size;
+
+    public ArtifactSearchResult(Iterable<ArtifactInfo> artifactInfos, int size) {
         this.artifactInfos = artifactInfos;
+        this.size = size;
+    }
+
+    /**
+     * Return the (estimated) size of the result.
+     *
+     * @return The size
+     */
+    public int getSize() {
+        return size;
     }
 
     @Override
@@ -28,4 +40,5 @@ public class ArtifactSearchResult implements Iterable<ArtifactInfo>, Closeable {
             ((Closeable) artifactInfos).close();
         }
     }
+
 }
