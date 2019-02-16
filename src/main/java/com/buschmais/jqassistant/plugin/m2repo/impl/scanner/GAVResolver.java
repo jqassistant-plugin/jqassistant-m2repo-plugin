@@ -1,33 +1,48 @@
 package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import com.buschmais.jqassistant.core.store.api.Store;
+import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.Coordinates;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenArtifactHelper;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactIdDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenGroupIdDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenVersionDescriptor;
+import com.buschmais.xo.api.ResultIterator;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 
 /**
- * A resolver for {@link MavenVersionDescriptor} which uses a cache.
+ * A caching resolver for {@link MavenVersionDescriptor}s.
  */
 class GAVResolver {
 
+    private final Store store;
+
     private final MavenRepositoryDescriptor repositoryDescriptor;
 
-    private final Cache<GAV, MavenVersionDescriptor> cache = Caffeine.newBuilder().maximumSize(16).build();
+    private final Cache<String, MavenGroupIdDescriptor> groupIdCache = Caffeine.newBuilder().maximumSize(128).build();
+
+    private final Cache<GAV, MavenArtifactIdDescriptor> artifactIdCache = Caffeine.newBuilder().maximumSize(128).build();
+
+    private final Cache<GAV, MavenVersionDescriptor> versionCache = Caffeine.newBuilder().maximumSize(16).build();
 
     /**
      * Constructor.
-     * 
+     *
+     * @param store
      * @param repositoryDescriptor
      *            The {@link MavenRepositoryDescriptor}.
      */
-    GAVResolver(MavenRepositoryDescriptor repositoryDescriptor) {
+    GAVResolver(Store store, MavenRepositoryDescriptor repositoryDescriptor) {
+        this.store = store;
         this.repositoryDescriptor = repositoryDescriptor;
     }
 
@@ -41,10 +56,82 @@ class GAVResolver {
     public MavenVersionDescriptor resolve(Coordinates coordinates) {
         String baseVersion = MavenArtifactHelper.getBaseVersion(coordinates);
         GAV gav = GAV.builder().groupId(coordinates.getGroup()).artifactId(coordinates.getName()).version(baseVersion).build();
-        return cache.get(gav, key -> repositoryDescriptor.resolveVersion(key.getGroupId(), key.getArtifactId(), key.getVersion()));
+        return versionCache.get(gav, key -> {
+            GAV ga = GAV.builder().groupId(coordinates.getGroup()).artifactId(coordinates.getName()).build();
+            String versionFQN = coordinates.getGroup() + ":" + coordinates.getName() + ":" + baseVersion;
+            return getVersion(artifactIdCache.get(ga, gaKey -> {
+                String artifactFQN = coordinates.getGroup() + ":" + coordinates.getName();
+                return getArtifactId(groupIdCache.get(coordinates.getGroup(), groupId -> getGroupId(groupId)), artifactFQN, coordinates.getName());
+            }), versionFQN, baseVersion);
+        });
     }
 
-    @Getter
+    /**
+     * Resolve the {@link MavenGroupIdDescriptor} for the given groupId.
+     */
+    private MavenGroupIdDescriptor getGroupId(String groupId) {
+        return getOrCreate(MavenGroupIdDescriptor.class, groupId, g -> repositoryDescriptor.equals(g.getRepository()), g -> {
+            g.setName(groupId);
+            g.setRepository(repositoryDescriptor);
+        });
+    }
+
+    /**
+     * Resolve the {@link MavenArtifactIdDescriptor}.
+     */
+    private MavenArtifactIdDescriptor getArtifactId(MavenGroupIdDescriptor groupId, String fqn, String name) {
+        return getOrCreate(MavenArtifactIdDescriptor.class, fqn, a -> groupId.equals(a.getGroupId()), a -> {
+            a.setFullQualifiedName(fqn);
+            a.setName(name);
+            a.setGroupId(groupId);
+        });
+    }
+
+    /**
+     * Resolve the {@link MavenVersionDescriptor}.
+     */
+    private MavenVersionDescriptor getVersion(MavenArtifactIdDescriptor artifactId, String fqn, String version) {
+        return getOrCreate(MavenVersionDescriptor.class, fqn, v -> artifactId.equals(v.getArtifactId()), v -> {
+            v.setFullQualifiedName(fqn);
+            v.setName(version);
+            v.setArtifactId(artifactId);
+        });
+    }
+
+    /**
+     * Get or create a descriptor of a given type by an indexed property.
+     * 
+     * @param type
+     *            The {@link Descriptor} type.
+     * @param value
+     *            The indexed value.
+     * @param matcher
+     *            A {@link Predicate} that matches found {@link Descriptor}s.
+     * @param onCreate
+     *            A {@link Consumer} that takes a created {@link Descriptor}
+     *            instance.
+     * @param <T>
+     *            The {@link Descriptor} type.
+     * @return The {@link Descriptor} of the requested type according to the indexed
+     *         value and matcher.
+     */
+    private <T extends Descriptor> T getOrCreate(Class<T> type, String value, Predicate<T> matcher, Consumer<T> onCreate) {
+        try (ResultIterator<T> iterator = store.getXOManager().find(type, value).iterator()) {
+            while (iterator.hasNext()) {
+                T descriptor = iterator.next();
+                if (matcher.test(descriptor)) {
+                    return descriptor;
+                }
+            }
+        }
+        T descriptor = store.create(type);
+        onCreate.accept(descriptor);
+        return descriptor;
+    }
+
+    /**
+     * Represents GroupId/ArtifactId/Version coordinates as key.
+     */
     @Builder
     @EqualsAndHashCode
     @ToString

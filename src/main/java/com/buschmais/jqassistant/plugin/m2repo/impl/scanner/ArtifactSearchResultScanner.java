@@ -85,7 +85,7 @@ public class ArtifactSearchResultScanner {
     private void resolveAndScan(ArtifactSearchResult artifactSearchResult) throws IOException {
         PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
         MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
-        GAVResolver gavResolver = new GAVResolver(repositoryDescriptor);
+        GAVResolver gavResolver = new GAVResolver(scanner.getContext().getStore(), repositoryDescriptor);
 
         BlockingQueue<ArtifactTask.Result> queue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
         ExecutorService pool = Executors.newFixedThreadPool(1, r -> new Thread(r, ArtifactTask.class.getSimpleName()));

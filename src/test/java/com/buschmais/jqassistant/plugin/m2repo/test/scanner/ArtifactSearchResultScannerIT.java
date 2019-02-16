@@ -99,7 +99,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(((MavenSnapshotDescriptor) artifact).getLastModified(), equalTo(LAST_MODIFIED));
             assertThat(model.getDescribes().contains(artifact), equalTo(true));
             // Verify GAV
-            List<MavenGroupIdDescriptor> groupdIs = query("MATCH (r:Maven:Repository)-[:CONTAINS]->(g:GroupId) RETURN g").getColumn("g");
+            List<MavenGroupIdDescriptor> groupdIs = query("MATCH (r:Maven:Repository)-[:CONTAINS_GROUP_ID]->(g:GroupId) RETURN g").getColumn("g");
             assertThat(groupdIs.size(), equalTo(1));
             MavenGroupIdDescriptor groupId = groupdIs.get(0);
             assertThat(groupId.getName(), equalTo(GROUP_ID));
@@ -118,7 +118,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(artifacts.get(0), is(artifact));
         } finally {
             if (store.hasActiveTransaction()) {
-                store.commitTransaction();
+                store.rollbackTransaction();
             }
             stopServer();
         }
