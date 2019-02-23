@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 
 import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
@@ -35,13 +36,15 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
 
     private ArtifactSearchResultScanner resultScanner;
 
+    private MavenRepositoryDescriptor repositoryDescriptor;
+
     @BeforeEach
     public void init() throws MalformedURLException {
         store.beginTransaction();
-        MavenRepositoryDescriptor mavenRepositoryDescriptor = store.create(MavenRepositoryDescriptor.class);
-        mavenRepositoryDescriptor.setUrl(TEST_REPOSITORY_URL);
+        repositoryDescriptor = store.create(MavenRepositoryDescriptor.class);
+        repositoryDescriptor.setUrl(TEST_REPOSITORY_URL);
         store.commitTransaction();
-        AetherArtifactProvider artifactProvider = new AetherArtifactProvider(new URL(TEST_REPOSITORY_URL), mavenRepositoryDescriptor, localRepositoryDirectory);
+        AetherArtifactProvider artifactProvider = new AetherArtifactProvider(new URL(TEST_REPOSITORY_URL), localRepositoryDirectory);
         resultScanner = new ArtifactSearchResultScanner(getScanner(), artifactProvider, new ArtifactFilter(null, null), true, true);
     }
 
@@ -66,7 +69,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             artifactInfo.setFieldValue(MAVEN.PACKAGING, PACKAGING_JAR);
             List<ArtifactInfo> artifactInfos = asList(artifactInfo);
 
-            resultScanner.scan(new ArtifactSearchResult(artifactInfos, artifactInfos.size()));
+            resultScanner.scan(new ArtifactSearchResult(artifactInfos, artifactInfos.size()), repositoryDescriptor);
 
             assertThat("Expecting a directory for the local Maven repository.", new File(localRepositoryDirectory, "localhost/" + REPO_SERVER_PORT).exists(),
                     equalTo(true));
@@ -113,9 +116,9 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             MavenVersionDescriptor version = versions.get(0);
             assertThat(version.getName(), equalTo(BASE_VERSION));
             assertThat(version.getFullQualifiedName(), equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + BASE_VERSION));
-            List<MavenArtifactDescriptor> artifacts = version.getArtifacts();
+            Set<MavenArtifactDescriptor> artifacts = version.getArtifacts();
             assertThat(artifacts.size(), equalTo(1));
-            assertThat(artifacts.get(0), is(artifact));
+            assertThat(artifacts.stream().findFirst().get(), is(artifact));
         } finally {
             if (store.hasActiveTransaction()) {
                 store.rollbackTransaction();

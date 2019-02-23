@@ -63,12 +63,15 @@ public class ArtifactSearchResultScanner {
         this.keepArtifacts = keepArtifacts;
     }
 
-    public void scan(ArtifactSearchResult artifactSearchResult) throws IOException {
+    public void scan(ArtifactSearchResult artifactSearchResult, MavenRepositoryDescriptor repositoryDescriptor) throws IOException {
+        MavenRepositoryFileResolver repositoryFileResolver = new MavenRepositoryFileResolver(repositoryDescriptor);
+        MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot(),
+                repositoryFileResolver);
         // register file resolver strategy to identify repository artifacts
-        scanner.getContext().push(FileResolver.class, artifactProvider.getFileResolver());
-        scanner.getContext().push(ArtifactResolver.class, artifactProvider.getArtifactResolver());
+        scanner.getContext().push(FileResolver.class, repositoryFileResolver);
+        scanner.getContext().push(ArtifactResolver.class, repositoryArtifactResolver);
         try {
-            resolveAndScan(artifactSearchResult);
+            resolveAndScan(artifactSearchResult, repositoryDescriptor);
         } finally {
             scanner.getContext().pop(ArtifactResolver.class);
             scanner.getContext().pop(FileResolver.class);
@@ -81,10 +84,11 @@ public class ArtifactSearchResultScanner {
      *
      * @param artifactSearchResult
      *            the {@link ArtifactSearchResult}
+     * @param repositoryDescriptor
+     *            The {@link MavenRepositoryDescriptor}.
      */
-    private void resolveAndScan(ArtifactSearchResult artifactSearchResult) throws IOException {
+    private void resolveAndScan(ArtifactSearchResult artifactSearchResult, MavenRepositoryDescriptor repositoryDescriptor) throws IOException {
         PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
-        MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
         GAVResolver gavResolver = new GAVResolver(scanner.getContext().getStore(), repositoryDescriptor);
 
         BlockingQueue<ArtifactTask.Result> queue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
@@ -121,7 +125,7 @@ public class ArtifactSearchResultScanner {
                             mavenArtifactDescriptor = getArtifact(artifactCoordinates, result.getArtifactResult(), snapshot, lastModified);
                             // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g.
                             // due to an invalid model)
-                            if (modelDescriptor != null && !modelDescriptor.getDescribes().contains(mavenArtifactDescriptor)) {
+                            if (modelDescriptor != null) {
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                             }
                             repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);

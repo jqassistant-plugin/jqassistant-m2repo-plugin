@@ -85,20 +85,19 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
             LOGGER.info("Creating local maven repository directory {}", localDirectory.getAbsolutePath());
             localDirectory.mkdirs();
         }
-        MavenRepositoryDescriptor repoDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
-        AetherArtifactProvider artifactProvider = new AetherArtifactProvider(repositoryUrl, repoDescriptor, localDirectory);
+        AetherArtifactProvider artifactProvider = new AetherArtifactProvider(repositoryUrl, localDirectory);
         ArtifactSearchResultScanner artifactSearchResultScanner = new ArtifactSearchResultScanner(scanner, artifactProvider, artifactFilter, scanArtifacts,
                 keepArtifacts);
-        MavenRepositoryDescriptor repositoryDescriptor = artifactProvider.getRepositoryDescriptor();
+        MavenRepositoryDescriptor repositoryDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
         try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
             Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
             mavenIndex.updateIndex();
             try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(lastScanTime)) {
-                artifactSearchResultScanner.scan(searchResult);
+                artifactSearchResultScanner.scan(searchResult, repositoryDescriptor);
             }
         }
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
-        return repoDescriptor;
+        return repositoryDescriptor;
     }
 
 }

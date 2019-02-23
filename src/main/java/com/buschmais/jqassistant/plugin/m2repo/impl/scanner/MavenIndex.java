@@ -109,6 +109,7 @@ public class MavenIndex implements AutoCloseable {
     }
 
     public ArtifactSearchResult getArtifactsSince(final Date startDate) throws IOException {
+        LOGGER.info("Executing query for artifacts that have been updated since {}.", startDate);
         final long startDateMillis = startDate.getTime();
         // find only maven artifact documents
         Query query = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression(Field.NOT_PRESENT));

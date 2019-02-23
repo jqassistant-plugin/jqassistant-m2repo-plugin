@@ -6,10 +6,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
-import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
-import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -42,8 +39,6 @@ public class AetherArtifactProvider implements ArtifactProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AetherArtifactProvider.class);
 
-    private MavenRepositoryDescriptor repositoryDescriptor;
-
     private URL url;
 
     private String username;
@@ -51,10 +46,6 @@ public class AetherArtifactProvider implements ArtifactProvider {
     private String password;
 
     private final File repositoryRoot;
-
-    private MavenRepositoryFileResolver repositoryFileResolver;
-
-    private MavenRepositoryArtifactResolver repositoryArtifactResolver;
 
     private final RemoteRepository repository;
     private final RepositorySystem repositorySystem;
@@ -66,14 +57,11 @@ public class AetherArtifactProvider implements ArtifactProvider {
      * 
      * @param repositoryUrl
      *            The repository url
-     * @param repositoryDescriptor
-     *            The repository descriptor.
      * @param workDirectory
      *            The work directory for local caching of files.
      */
-    public AetherArtifactProvider(URL repositoryUrl, MavenRepositoryDescriptor repositoryDescriptor, File workDirectory) {
+    public AetherArtifactProvider(URL repositoryUrl, File workDirectory) {
         this.url = repositoryUrl;
-        this.repositoryDescriptor = repositoryDescriptor;
         String userInfo = repositoryUrl.getUserInfo();
         this.username = StringUtils.substringBefore(userInfo, ":");
         this.password = StringUtils.substringAfter(userInfo, ":");
@@ -89,9 +77,7 @@ public class AetherArtifactProvider implements ArtifactProvider {
         Authentication auth = authBuilder.build();
         repository = new RemoteRepository.Builder(repositoryId, "default", url).setAuthentication(auth).build();
         repositorySystem = newRepositorySystem();
-        this.repositoryFileResolver = new MavenRepositoryFileResolver(repositoryDescriptor);
         this.repositoryRoot = new File(workDirectory, repositoryId).getAbsoluteFile();
-        this.repositoryArtifactResolver = new MavenRepositoryArtifactResolver(repositoryRoot, repositoryFileResolver);
         LOGGER.info("Using local repository '{}' for URL '{}'", repositoryRoot.getAbsolutePath(), url);
         session = newRepositorySystemSession(repositorySystem, repositoryRoot);
     }
@@ -117,11 +103,6 @@ public class AetherArtifactProvider implements ArtifactProvider {
         return repositoryIdBuilder.toString();
     }
 
-    @Override
-    public MavenRepositoryDescriptor getRepositoryDescriptor() {
-        return repositoryDescriptor;
-    }
-
     /**
      * Resolves the given artifact.
      *
@@ -138,13 +119,8 @@ public class AetherArtifactProvider implements ArtifactProvider {
     }
 
     @Override
-    public FileResolver getFileResolver() {
-        return repositoryFileResolver;
-    }
-
-    @Override
-    public ArtifactResolver getArtifactResolver() {
-        return repositoryArtifactResolver;
+    public File getRepositoryRoot() {
+        return repositoryRoot;
     }
 
     /**
@@ -160,8 +136,8 @@ public class AetherArtifactProvider implements ArtifactProvider {
     }
 
     /**
-     * Creates a list of {@link ArtifactRequest}s for each artifact. The result
-     * will always include the "pom" artifact for building the model.
+     * Creates a list of {@link ArtifactRequest}s for each artifact. The result will
+     * always include the "pom" artifact for building the model.
      *
      * @param artifact
      *            The artifact.

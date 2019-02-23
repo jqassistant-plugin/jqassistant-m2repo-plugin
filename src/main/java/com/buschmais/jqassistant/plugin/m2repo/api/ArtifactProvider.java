@@ -1,8 +1,6 @@
 package com.buschmais.jqassistant.plugin.m2repo.api;
 
-import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
-import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
+import java.io.File;
 
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -12,13 +10,6 @@ import org.eclipse.aether.resolution.ArtifactResult;
  * Defines the interface for an artifact provider
  */
 public interface ArtifactProvider {
-
-    /**
-     * Return the repository descriptor for the repository.
-     * 
-     * @return The repository descriptor.
-     */
-    MavenRepositoryDescriptor getRepositoryDescriptor();
 
     /**
      * Provide the given artifact as {@link ArtifactResult}.
@@ -32,16 +23,9 @@ public interface ArtifactProvider {
     ArtifactResult getArtifact(Artifact artifact) throws ArtifactResolutionException;
 
     /**
-     * Return the file resolver strategy to use for resolving artifacts.
+     * Return the local repository root directory.
      * 
-     * @return The file resolver strategy.
+     * @return The repository root directory.
      */
-    FileResolver getFileResolver();
-
-    /**
-     * Return the associated artifact resolver.
-     *
-     * @return The artifact resolver.
-     */
-    ArtifactResolver getArtifactResolver();
+    File getRepositoryRoot();
 }
