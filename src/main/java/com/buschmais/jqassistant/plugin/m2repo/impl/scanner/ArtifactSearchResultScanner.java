@@ -128,7 +128,7 @@ public class ArtifactSearchResultScanner {
                             if (modelDescriptor != null) {
                                 modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
                             }
-                            repositoryDescriptor.getContainedArtifacts().add(mavenArtifactDescriptor);
+                            repositoryDescriptor.addArtifact(mavenArtifactDescriptor);
                             gavResolver.resolve(artifactCoordinates).getArtifacts().add(mavenArtifactDescriptor);
                         }
                     }
@@ -179,7 +179,7 @@ public class ArtifactSearchResultScanner {
                     scanner.getContext().pop(PomModelBuilder.class);
                 }
                 markReleaseOrSnaphot(modelDescriptor, modelCoordinates, snapshot, lastModified);
-                repositoryDescriptor.getContainedModels().add(modelDescriptor);
+                repositoryDescriptor.addModel(modelDescriptor);
             }
             return modelDescriptor;
         });
