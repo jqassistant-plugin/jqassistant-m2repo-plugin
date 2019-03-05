@@ -158,6 +158,9 @@ public class MavenIndex implements AutoCloseable {
             info.setUserName(username);
             info.setPassword(password);
         }
+        if (indexingContext.getTimestamp() != null) {
+            LOGGER.info("Current Maven index timestamp: {}", indexingContext.getTimestamp());
+        }
         ResourceFetcher resourceFetcher = new WagonHelper.WagonFetcher(httpWagon, listener, info, null);
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(indexingContext, resourceFetcher);
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
@@ -168,6 +171,7 @@ public class MavenIndex implements AutoCloseable {
         } else {
             LOGGER.info("Received an incremental update.");
         }
+        LOGGER.info("Updated Maven index timestamp: {}", indexingContext.getTimestamp());
     }
 
 }
