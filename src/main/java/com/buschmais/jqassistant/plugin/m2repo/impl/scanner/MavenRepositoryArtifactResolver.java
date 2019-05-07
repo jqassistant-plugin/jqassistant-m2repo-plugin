@@ -6,7 +6,7 @@ import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.Coordinates;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenArtifactHelper;
-import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactDescriptor;
+import com.buschmais.jqassistant.plugin.maven3.api.model.MavenArtifactFileDescriptor;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,9 +30,9 @@ public class MavenRepositoryArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public MavenArtifactDescriptor resolve(Coordinates coordinates, ScannerContext scannerContext) {
+    public MavenArtifactFileDescriptor resolve(Coordinates coordinates, ScannerContext scannerContext) {
         String fileName = getFileName(coordinates);
-        MavenArtifactDescriptor mavenArtifactDescriptor = repositoryFileResolver.require(fileName, MavenArtifactDescriptor.class, scannerContext);
+        MavenArtifactFileDescriptor mavenArtifactDescriptor = repositoryFileResolver.require(fileName, MavenArtifactFileDescriptor.class, scannerContext);
         // TODO do not set coordinates on existing descriptors
         MavenArtifactHelper.setCoordinates(mavenArtifactDescriptor, coordinates);
         MavenArtifactHelper.setId(mavenArtifactDescriptor, coordinates);
