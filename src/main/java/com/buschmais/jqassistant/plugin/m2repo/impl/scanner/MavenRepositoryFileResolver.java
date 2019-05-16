@@ -17,9 +17,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 public class MavenRepositoryFileResolver extends AbstractFileResolver {
 
     private MavenRepositoryDescriptor repositoryDescriptor;
-
-    private Cache<String, FileDescriptor> cache = Caffeine.newBuilder().maximumSize(512).build();
-
     /**
      * Constructor.
      *
