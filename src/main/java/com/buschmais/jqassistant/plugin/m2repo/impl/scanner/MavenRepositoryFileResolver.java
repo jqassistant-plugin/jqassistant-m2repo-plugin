@@ -5,9 +5,6 @@ import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractFileResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
 /**
  * A file resolver strategy for a local maven repository.
  * <p>
