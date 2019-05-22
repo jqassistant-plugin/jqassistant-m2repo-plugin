@@ -116,6 +116,7 @@ public class MavenIndex implements AutoCloseable {
         IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(indexingContext),
                 (ctx, ai) -> startDateMillis < ai.getLastModified());
         IteratorSearchResponse artifactInfos = indexer.searchIterator(request);
+        LOGGER.info("Artifact query returned {} hits (total).", artifactInfos.getTotalHitsCount());
         return new ArtifactSearchResult(artifactInfos, artifactInfos.getTotalHitsCount());
     }
 
@@ -126,6 +127,9 @@ public class MavenIndex implements AutoCloseable {
      * @throws IOException
      */
     public void updateIndex() throws IOException {
+        if (indexingContext.getTimestamp() != null) {
+            LOGGER.info("Current Maven index timestamp: {}", indexingContext.getTimestamp());
+        }
         IndexUpdater indexUpdater;
         Wagon httpWagon;
         try {
@@ -135,7 +139,6 @@ public class MavenIndex implements AutoCloseable {
             throw new IOException(e);
         }
 
-        LOGGER.info("Updating repository index (this may take a while).");
         TransferListener listener = new AbstractTransferListener() {
             @Override
             public void transferStarted(TransferEvent transferEvent) {
@@ -158,9 +161,7 @@ public class MavenIndex implements AutoCloseable {
             info.setUserName(username);
             info.setPassword(password);
         }
-        if (indexingContext.getTimestamp() != null) {
-            LOGGER.info("Current Maven index timestamp: {}", indexingContext.getTimestamp());
-        }
+        LOGGER.info("Updating repository index, this may take a while...");
         ResourceFetcher resourceFetcher = new WagonHelper.WagonFetcher(httpWagon, listener, info, null);
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(indexingContext, resourceFetcher);
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
