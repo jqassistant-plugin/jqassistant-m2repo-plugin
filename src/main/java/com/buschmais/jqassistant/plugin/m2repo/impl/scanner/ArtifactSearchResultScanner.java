@@ -12,7 +12,6 @@ import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ArtifactDescriptor;
-import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor;
@@ -63,21 +62,6 @@ public class ArtifactSearchResultScanner {
         this.keepArtifacts = keepArtifacts;
     }
 
-    public void scan(ArtifactSearchResult artifactSearchResult, MavenRepositoryDescriptor repositoryDescriptor) throws IOException {
-        MavenRepositoryFileResolver repositoryFileResolver = new MavenRepositoryFileResolver(repositoryDescriptor);
-        MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot(),
-                repositoryFileResolver);
-        // register file resolver strategy to identify repository artifacts
-        scanner.getContext().push(FileResolver.class, repositoryFileResolver);
-        scanner.getContext().push(ArtifactResolver.class, repositoryArtifactResolver);
-        try {
-            resolveAndScan(artifactSearchResult, repositoryDescriptor);
-        } finally {
-            scanner.getContext().pop(ArtifactResolver.class);
-            scanner.getContext().pop(FileResolver.class);
-        }
-    }
-
     /**
      * Resolves, scans and add the artifact to the
      * {@link MavenRepositoryDescriptor}.
@@ -87,7 +71,7 @@ public class ArtifactSearchResultScanner {
      * @param repositoryDescriptor
      *            The {@link MavenRepositoryDescriptor}.
      */
-    private void resolveAndScan(ArtifactSearchResult artifactSearchResult, MavenRepositoryDescriptor repositoryDescriptor) throws IOException {
+    public void scan(ArtifactSearchResult artifactSearchResult, MavenRepositoryDescriptor repositoryDescriptor) throws IOException {
         PomModelBuilder effectiveModelBuilder = new EffectiveModelBuilder(artifactProvider);
         GAVResolver gavResolver = new GAVResolver(scanner.getContext().getStore(), repositoryDescriptor);
 
@@ -187,7 +171,7 @@ public class ArtifactSearchResultScanner {
 
     /**
      * Get the artifact for the given {@link Coordinates}.
-     * 
+     *
      * @param artifactCoordinates
      *            The {@link Coordinates}.
      * @param artifactResult
