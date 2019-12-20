@@ -1,6 +1,6 @@
 package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
-import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactFilter;
+import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactFilter;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;

@@ -10,9 +10,9 @@ import java.util.Set;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.AetherArtifactProvider;
-import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactFilter;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResult;
 import com.buschmais.jqassistant.plugin.m2repo.impl.scanner.ArtifactSearchResultScanner;
+import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactFilter;
 import com.buschmais.jqassistant.plugin.maven3.api.model.*;
 
 import org.apache.maven.index.ArtifactInfo;

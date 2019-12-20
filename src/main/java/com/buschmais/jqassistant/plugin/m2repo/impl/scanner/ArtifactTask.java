@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
 import com.buschmais.jqassistant.plugin.m2repo.api.ArtifactProvider;
+import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactFilter;
 
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.index.ArtifactInfo;
@@ -39,7 +40,7 @@ public class ArtifactTask implements Runnable {
         /**
          * Represents the result of resolving an artifact and its model based on an
          * {@link ArtifactInfo}.
-         * 
+         *
          * @param artifactInfo
          *            The {@link ArtifactInfo}.
          * @param modelArtifactResult
@@ -82,7 +83,7 @@ public class ArtifactTask implements Runnable {
 
     /**
      * Constructor.
-     * 
+     *
      * @param artifactSearchResult
      *            The {@link ArtifactSearchResult}.
      * @param artifactFilter
