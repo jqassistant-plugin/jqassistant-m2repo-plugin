@@ -10,11 +10,9 @@ import java.util.List;
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
-import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactFilter;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenRepositoryArtifactResolver;
-import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenRepositoryFileResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenRepositoryResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
@@ -95,20 +93,16 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
                 keepArtifacts);
 
         MavenRepositoryDescriptor repositoryDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
-        MavenRepositoryFileResolver repositoryFileResolver = new MavenRepositoryFileResolver(repositoryUrl.toString());
-        MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot(),
-                repositoryFileResolver);
+        MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot());
         try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
             Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
             mavenIndex.updateIndex();
             // register file resolver strategy to identify repository artifacts
-            scanner.getContext().push(FileResolver.class, repositoryFileResolver);
             scanner.getContext().push(ArtifactResolver.class, repositoryArtifactResolver);
             try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(lastScanTime)) {
                 artifactSearchResultScanner.scan(searchResult, repositoryDescriptor);
             } finally {
                 scanner.getContext().pop(ArtifactResolver.class);
-                scanner.getContext().pop(FileResolver.class);
             }
         }
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
