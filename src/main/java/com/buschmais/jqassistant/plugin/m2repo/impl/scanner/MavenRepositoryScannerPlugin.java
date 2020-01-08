@@ -10,6 +10,7 @@ import java.util.List;
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
+import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactFilter;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.MavenRepositoryArtifactResolver;
@@ -93,7 +94,8 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
                 keepArtifacts);
 
         MavenRepositoryDescriptor repositoryDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
-        MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot());
+        FileResolver fileResolver = scanner.getContext().peek(FileResolver.class);
+        MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot(), fileResolver);
         try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
             Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
             mavenIndex.updateIndex();
