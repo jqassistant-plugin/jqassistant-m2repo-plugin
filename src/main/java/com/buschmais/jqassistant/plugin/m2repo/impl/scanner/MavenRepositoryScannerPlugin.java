@@ -3,9 +3,7 @@ package com.buschmais.jqassistant.plugin.m2repo.impl.scanner;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
@@ -54,32 +52,8 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
     public void configure() {
         scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, false);
         keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
-        List<String> includeFilter = getFilterPattern(PROPERTY_NAME_FILTER_INCLUDES);
-        List<String> excludeFilter = getFilterPattern(PROPERTY_NAME_FILTER_EXCLUDES);
-        artifactFilter = new ArtifactFilter(includeFilter, excludeFilter);
+        artifactFilter = new ArtifactFilter(getStringProperty(PROPERTY_NAME_FILTER_INCLUDES, null), getStringProperty(PROPERTY_NAME_FILTER_EXCLUDES, null));
         localDirectory = new File(getStringProperty(PROPERTY_NAME_DIRECTORY, DEFAULT_M2REPO_DIR));
-    }
-
-    /**
-     * Extracts a list of artifact filters from the given property.
-     *
-     * @param propertyName
-     *            The name of the property.
-     * @return The list of artifact patterns.
-     */
-    private List<String> getFilterPattern(String propertyName) {
-        String patterns = getStringProperty(propertyName, null);
-        if (patterns == null) {
-            return null;
-        }
-        List<String> result = new ArrayList<>();
-        for (String pattern : patterns.split(",")) {
-            String trimmed = pattern.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
     }
 
     /** {@inheritDoc} */
