@@ -31,7 +31,7 @@ TIP: The artifact patterns follow the Maven syntax, i.e. `[groupId]:[artifactId]
 or `[groupId]:[artifactId]:[type]:[classifier]:[version]` and allow using wildcards.
 
 [[:Maven:Repository]]
-=== Nodes labled with `:Maven:Repository`
+=== Nodes labeled with `:Maven:Repository`
 A remote Maven repository.
 
 .Properties of `:Maven:Repository`
@@ -52,7 +52,7 @@ A remote Maven repository.
 |====
 
 [[:Release]]
-=== Nodes labled with `:Maven:Release`
+=== Nodes labeled with `:Maven:Release`
 
 Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven versions.
 
@@ -65,7 +65,7 @@ Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven version
 |====
 
 [[:Snapshot]]
-=== Nodes labled with `:Maven:Snapshot`
+=== Nodes labeled with `:Maven:Snapshot`
 
 Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot versions.
 
@@ -79,7 +79,7 @@ Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot version
 
 
 [[:Maven:GroupId]]
-=== Nodes labled with `:Maven:GroupId`
+=== Nodes labeled with `:Maven:GroupId`
 
 Represents a group coordinate within <<:Maven:Repository>>.
 
@@ -99,7 +99,7 @@ Represents a group coordinate within <<:Maven:Repository>>.
 
 
 [[:Maven:ArtifactId]]
-=== Nodes labled with `:Maven:ArtifactId`
+=== Nodes labeled with `:Maven:ArtifactId`
 
 Represents artifact coordinate within <<:Maven:GroupId>>.
 
@@ -119,7 +119,7 @@ Represents artifact coordinate within <<:Maven:GroupId>>.
 
 
 [[:Maven:Version]]
-=== Nodes labled with `:Maven:Version`
+=== Nodes labeled with `:Maven:Version`
 
 Represents a version coordinate within <<:Maven:ArtifactId>>.
 
