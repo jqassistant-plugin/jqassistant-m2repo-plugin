@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Date;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
+import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
@@ -16,9 +17,6 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescript
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenRepositoryResolver;
 import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * A scanner for (remote) maven repositories.
  *
@@ -26,20 +24,16 @@ import org.slf4j.LoggerFactory;
  */
 public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, MavenRepositoryDescriptor> {
 
-    public static final String DEFAULT_M2REPO_DIR = "./jqassistant/data/m2repo";
-
     private static final String PROPERTY_NAME_ARTIFACTS_KEEP = "m2repo.artifacts.keep";
     private static final String PROPERTY_NAME_ARTIFACTS_SCAN = "m2repo.artifacts.scan";
     private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
     private static final String PROPERTY_NAME_FILTER_EXCLUDES = "m2repo.filter.excludes";
     private static final String PROPERTY_NAME_DIRECTORY = "m2repo.directory";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenRepositoryScannerPlugin.class);
-
     private boolean keepArtifacts;
     private boolean scanArtifacts;
     private ArtifactFilter artifactFilter;
-    private File localDirectory;
+    private String localDirectoryName;
 
     /** {@inheritDoc} */
     @Override
@@ -53,36 +47,44 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
         scanArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_SCAN, false);
         keepArtifacts = getBooleanProperty(PROPERTY_NAME_ARTIFACTS_KEEP, true);
         artifactFilter = new ArtifactFilter(getStringProperty(PROPERTY_NAME_FILTER_INCLUDES, null), getStringProperty(PROPERTY_NAME_FILTER_EXCLUDES, null));
-        localDirectory = new File(getStringProperty(PROPERTY_NAME_DIRECTORY, DEFAULT_M2REPO_DIR));
+        localDirectoryName = getStringProperty(PROPERTY_NAME_DIRECTORY, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public MavenRepositoryDescriptor scan(URL repositoryUrl, String path, Scope scope, Scanner scanner) throws IOException {
-        if (!localDirectory.exists()) {
-            LOGGER.info("Creating local maven repository directory {}", localDirectory.getAbsolutePath());
-            localDirectory.mkdirs();
-        }
+        ScannerContext context = scanner.getContext();
+        File localDirectory = getLocalDirectory(context);
         AetherArtifactProvider artifactProvider = new AetherArtifactProvider(repositoryUrl, localDirectory);
         ArtifactSearchResultScanner artifactSearchResultScanner = new ArtifactSearchResultScanner(scanner, artifactProvider, artifactFilter, scanArtifacts,
                 keepArtifacts);
 
-        MavenRepositoryDescriptor repositoryDescriptor = MavenRepositoryResolver.resolve(scanner.getContext().getStore(), repositoryUrl.toString());
-        FileResolver fileResolver = scanner.getContext().peek(FileResolver.class);
+        MavenRepositoryDescriptor repositoryDescriptor = MavenRepositoryResolver.resolve(context.getStore(), repositoryUrl.toString());
+        FileResolver fileResolver = context.peek(FileResolver.class);
         MavenRepositoryArtifactResolver repositoryArtifactResolver = new MavenRepositoryArtifactResolver(artifactProvider.getRepositoryRoot(), fileResolver);
         try (MavenIndex mavenIndex = artifactProvider.getMavenIndex()) {
             Date lastScanTime = new Date(repositoryDescriptor.getLastUpdate());
             mavenIndex.updateIndex();
             // register file resolver strategy to identify repository artifacts
-            scanner.getContext().push(ArtifactResolver.class, repositoryArtifactResolver);
+            context.push(ArtifactResolver.class, repositoryArtifactResolver);
             try (ArtifactSearchResult searchResult = mavenIndex.getArtifactsSince(lastScanTime)) {
                 artifactSearchResultScanner.scan(searchResult, repositoryDescriptor);
             } finally {
-                scanner.getContext().pop(ArtifactResolver.class);
+                context.pop(ArtifactResolver.class);
             }
         }
         repositoryDescriptor.setLastUpdate(System.currentTimeMillis());
         return repositoryDescriptor;
     }
 
+    private File getLocalDirectory(ScannerContext context) {
+        File localDirectory;
+        if (localDirectoryName != null) {
+            localDirectory = new File(localDirectoryName);
+            localDirectory.mkdirs();
+        } else {
+            localDirectory = context.getDataDirectory("m2repo");
+        }
+        return localDirectory;
+    }
 }

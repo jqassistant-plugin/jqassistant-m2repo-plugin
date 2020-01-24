@@ -2,10 +2,8 @@ package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
-import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 
 import org.apache.commons.io.FileUtils;
 import org.javastack.httpd.HttpServer;
@@ -28,10 +26,6 @@ public abstract class AbstractMavenRepositoryIT extends AbstractPluginIT {
     public void createRepo() {
         localRepositoryDirectory = new File("target/m2repo");
         FileUtils.deleteQuietly(localRepositoryDirectory);
-    }
-
-    protected Map<String, Object> getScannerProperties() {
-        return MapBuilder.<String, Object> create("m2repo.directory", localRepositoryDirectory.getAbsolutePath()).get();
     }
 
     /**
