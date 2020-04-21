@@ -29,7 +29,7 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
 
         Map<String, Object> params = new HashMap<>();
         params.put("repoUrl", TEST_REPOSITORY_URL);
-        MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository{url:{repoUrl}}) RETURN r", params).getSingleResult()
+        MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository{url:$repoUrl}) RETURN r", params).getSingleResult()
                 .get("r", MavenRepositoryDescriptor.class);
         assertThat(repositoryDescriptor, notNullValue());
         assertThat(repositoryDescriptor.getUrl(), equalTo(TEST_REPOSITORY_URL));
