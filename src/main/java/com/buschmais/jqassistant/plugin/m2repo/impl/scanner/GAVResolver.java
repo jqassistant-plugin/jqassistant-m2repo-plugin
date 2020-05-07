@@ -13,8 +13,6 @@ import com.buschmais.jqassistant.plugin.maven3.api.model.MavenRepositoryDescript
 import com.buschmais.jqassistant.plugin.maven3.api.model.MavenVersionDescriptor;
 import com.buschmais.xo.api.ResultIterator;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -28,11 +26,9 @@ class GAVResolver {
 
     private final MavenRepositoryDescriptor repositoryDescriptor;
 
-    private final Cache<String, MavenGroupIdDescriptor> groupIdCache = Caffeine.newBuilder().maximumSize(128).build();
-
-    private final Cache<GAV, MavenArtifactIdDescriptor> artifactIdCache = Caffeine.newBuilder().maximumSize(128).build();
-
-    private final Cache<GAV, MavenVersionDescriptor> versionCache = Caffeine.newBuilder().maximumSize(16).build();
+    private final String CACHE_KEY_GROUP_ID = GAVResolver.class.getName() + "_GROUP_ID";
+    private final String CACHE_KEY_ARTIFACT_ID = GAVResolver.class.getName() + "_ARTIFACT_ID";
+    private final String CACHE_KEY_VERSION = GAVResolver.class.getName() + "VERSION";
 
     /**
      * Constructor.
@@ -48,7 +44,7 @@ class GAVResolver {
 
     /**
      * Resolve the given {@link Coordinates} to a {@link MavenVersionDescriptor}.
-     * 
+     *
      * @param coordinates
      *            The {@link Coordinates}.
      * @return The {@link MavenVersionDescriptor}.
@@ -56,12 +52,12 @@ class GAVResolver {
     public MavenVersionDescriptor resolve(Coordinates coordinates) {
         String baseVersion = MavenArtifactHelper.getBaseVersion(coordinates);
         GAV gav = GAV.builder().groupId(coordinates.getGroup()).artifactId(coordinates.getName()).version(baseVersion).build();
-        return versionCache.get(gav, key -> {
+        return store.get(CACHE_KEY_VERSION, gav, key -> {
             GAV ga = GAV.builder().groupId(coordinates.getGroup()).artifactId(coordinates.getName()).build();
             String versionFQN = coordinates.getGroup() + ":" + coordinates.getName() + ":" + baseVersion;
-            return getVersion(artifactIdCache.get(ga, gaKey -> {
+            return getVersion(store.get(CACHE_KEY_ARTIFACT_ID, ga, gaKey -> {
                 String artifactFQN = coordinates.getGroup() + ":" + coordinates.getName();
-                return getArtifactId(groupIdCache.get(coordinates.getGroup(), groupId -> getGroupId(groupId)), artifactFQN, coordinates.getName());
+                return getArtifactId(store.get(CACHE_KEY_GROUP_ID, coordinates.getGroup(), groupId -> getGroupId(groupId)), artifactFQN, coordinates.getName());
             }), versionFQN, baseVersion);
         });
     }
@@ -100,7 +96,7 @@ class GAVResolver {
 
     /**
      * Get or create a descriptor of a given type by an indexed property.
-     * 
+     *
      * @param type
      *            The {@link Descriptor} type.
      * @param value
