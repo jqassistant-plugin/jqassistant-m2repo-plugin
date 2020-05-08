@@ -52,12 +52,14 @@ class GAVResolver {
     public MavenVersionDescriptor resolve(Coordinates coordinates) {
         String baseVersion = MavenArtifactHelper.getBaseVersion(coordinates);
         GAV gav = GAV.builder().groupId(coordinates.getGroup()).artifactId(coordinates.getName()).version(baseVersion).build();
-        return store.get(CACHE_KEY_VERSION, gav, key -> {
+        return store.<GAV, MavenVersionDescriptor> getCache(CACHE_KEY_VERSION).get(gav, key -> {
             GAV ga = GAV.builder().groupId(coordinates.getGroup()).artifactId(coordinates.getName()).build();
             String versionFQN = coordinates.getGroup() + ":" + coordinates.getName() + ":" + baseVersion;
-            return getVersion(store.get(CACHE_KEY_ARTIFACT_ID, ga, gaKey -> {
+            return getVersion(store.<GAV, MavenArtifactIdDescriptor> getCache(CACHE_KEY_ARTIFACT_ID).get(ga, gaKey -> {
                 String artifactFQN = coordinates.getGroup() + ":" + coordinates.getName();
-                return getArtifactId(store.get(CACHE_KEY_GROUP_ID, coordinates.getGroup(), groupId -> getGroupId(groupId)), artifactFQN, coordinates.getName());
+                return getArtifactId(
+                        store.<String, MavenGroupIdDescriptor> getCache(CACHE_KEY_GROUP_ID).get(coordinates.getGroup(), groupId -> getGroupId(groupId)),
+                        artifactFQN, coordinates.getName());
             }), versionFQN, baseVersion);
         });
     }
