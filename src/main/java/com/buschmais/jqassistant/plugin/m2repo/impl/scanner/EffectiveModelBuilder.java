@@ -14,15 +14,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.Repository;
-import org.apache.maven.model.building.DefaultModelBuilder;
-import org.apache.maven.model.building.DefaultModelBuilderFactory;
-import org.apache.maven.model.building.DefaultModelBuildingRequest;
-import org.apache.maven.model.building.FileModelSource;
-import org.apache.maven.model.building.ModelBuildingException;
-import org.apache.maven.model.building.ModelBuildingRequest;
-import org.apache.maven.model.building.ModelProblemCollector;
-import org.apache.maven.model.building.ModelProblemCollectorExt;
-import org.apache.maven.model.building.ModelSource;
+import org.apache.maven.model.building.*;
 import org.apache.maven.model.resolution.ModelResolver;
 import org.apache.maven.model.resolution.UnresolvableModelException;
 import org.apache.maven.model.validation.ModelValidator;
@@ -45,7 +37,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
 
     /**
      * Constructor.
-     * 
+     *
      * @param artifactProvider
      *            The artifact provider.
      */
@@ -93,7 +85,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
 
         /**
          * Clear a relevant fields contained in the {@link ModelProblemCollector} to suppress errors.
-         * 
+         *
          * @param problems
          *            The problems.
          * @param field
@@ -112,9 +104,7 @@ public class EffectiveModelBuilder implements PomModelBuilder {
                     }
                     value.clear();
                 }
-            } catch (NoSuchFieldException e) {
-                LOGGER.warn("Cannot find field " + field, e);
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
                 LOGGER.warn("Cannot access field " + field, e);
             }
         }
