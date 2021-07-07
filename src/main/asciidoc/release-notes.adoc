@@ -1,0 +1,21 @@
+
+= M2 Repository
+
+== 1.7.0
+
+* Improved repository scanner to correctly handle SNAPSHOTS and build up a hierarchical GAV structure
+* Download artifacts from repository in background while scanning to improve performance
+* Default value of property `m2repo.artifacts.scan` changed to `false`, i.e. only models are scanned by default
+
+== 1.3
+
+* Only internal changes.
+
+== 1.2
+
+* Maven coordinates changed from `com.buschmais.jqassistant.plugin:jqassistant.plugin.m2repo`
+  to `com.buschmais.jqassistant.plugin:m2repo`.
+* No functional changes since version 1.1.3.
+
+
+

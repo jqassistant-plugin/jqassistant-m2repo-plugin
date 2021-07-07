@@ -1,6 +1,0 @@
-ifndef::jqa-in-manual[== Version 1.2]
-ifdef::jqa-in-manual[== M2 Repository Plugin 1.2]
-
-- Maven coordinates changed from `com.buschmais.jqassistant.plugin:jqassistant.plugin.m2repo`
-  to `com.buschmais.jqassistant.plugin:m2repo`.
-- No functional changes since version 1.1.3.
