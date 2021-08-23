@@ -11,17 +11,17 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-public class ArtifactFilterTest {
+class ArtifactFilterTest {
 
     @Test
-    public void includes() {
+    void includes() {
         ArtifactFilter artifactFilter = new ArtifactFilter("com.buschmais.jqassistant.*:*:jar", null);
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "jar", null)), equalTo(true));
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "zip", null)), equalTo(false));
     }
 
     @Test
-    public void includesClassifier() {
+    void includesClassifier() {
         ArtifactFilter artifactFilter = new ArtifactFilter("com.buschmais.jqassistant.*:*:jar:sources", null);
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "jar", "sources")),
                 equalTo(true));
@@ -30,14 +30,14 @@ public class ArtifactFilterTest {
     }
 
     @Test
-    public void excludes() {
+    void excludes() {
         ArtifactFilter artifactFilter = new ArtifactFilter(null, "com.buschmais.jqassistant.*:*:jar");
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "jar", null)), equalTo(false));
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "zip", null)), equalTo(true));
     }
 
     @Test
-    public void excludesClassifier() {
+    void excludesClassifier() {
         ArtifactFilter artifactFilter = new ArtifactFilter(null, "com.buschmais.jqassistant.*:*:jar:sources");
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "jar", "sources")),
                 equalTo(false));
@@ -46,14 +46,14 @@ public class ArtifactFilterTest {
     }
 
     @Test
-    public void includesAndExcludes() {
+    void includesAndExcludes() {
         ArtifactFilter artifactFilter = new ArtifactFilter("com.buschmais.jqassistant.*:*:jar", "com.buschmais.jqassistant.*:*:zip");
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "jar", null)), equalTo(true));
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "zip", null)), equalTo(false));
     }
 
     @Test
-    public void noFilter() {
+    void noFilter() {
         ArtifactFilter artifactFilter = new ArtifactFilter(null, null);
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "jar", null)), equalTo(true));
         assertThat(artifactFilter.match(getArtifact("com.buschmais.jqassistant.plugin", "jqassistant.plugin.m2repo", "1.0.0", "zip", null)), equalTo(true));

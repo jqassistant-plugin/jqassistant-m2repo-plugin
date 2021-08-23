@@ -7,7 +7,7 @@ import com.buschmais.jqassistant.plugin.maven3.api.scanner.MavenScope;
 
 import org.junit.jupiter.api.Test;
 
-public class MavenCentralScanMT extends AbstractMavenRepositoryIT {
+class MavenCentralScanMT extends AbstractMavenRepositoryIT {
 
     /**
      * URL of M2 central mirror provided by Sonatype Nexus 3
@@ -15,7 +15,7 @@ public class MavenCentralScanMT extends AbstractMavenRepositoryIT {
     public static final String MAVEN_CENTRAL = "https://repo1.maven.org/repo2/";
 
     @Test
-    public void scanModelOnly() throws IOException {
+    void scanModelOnly() throws IOException {
         store.beginTransaction();
         getScanner().scan(new URL(MAVEN_CENTRAL), MAVEN_CENTRAL, MavenScope.REPOSITORY);
         store.commitTransaction();

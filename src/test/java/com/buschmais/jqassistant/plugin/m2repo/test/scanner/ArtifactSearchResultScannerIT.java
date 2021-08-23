@@ -24,7 +24,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
+class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
 
     private static final String GROUP_ID = "com.buschmais.xo";
     private static final String ARTIFACT_ID_XO_API = "xo.api";
@@ -39,7 +39,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
     private MavenRepositoryDescriptor repositoryDescriptor;
 
     @BeforeEach
-    public void init() throws MalformedURLException {
+    void init() throws MalformedURLException {
         store.beginTransaction();
         repositoryDescriptor = store.create(MavenRepositoryDescriptor.class);
         repositoryDescriptor.setUrl(TEST_REPOSITORY_URL);
@@ -54,7 +54,7 @@ public class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
     }
 
     @Test
-    public void modelOnly() throws IOException {
+    void modelOnly() throws IOException {
         verify();
     }
 

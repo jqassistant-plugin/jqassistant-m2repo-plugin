@@ -15,10 +15,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
+class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
 
     @Test
-    public void scan() throws IOException {
+    void scan() throws IOException {
         Map<String, Object> scannerProperties = new HashMap<>();
         scannerProperties.put("m2repo.artifacts.scan", "true");
         scan(scannerProperties);
@@ -38,7 +38,7 @@ public class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
     }
 
     @Test
-    public void scanWithCustomDirectory() throws IOException {
+    void scanWithCustomDirectory() throws IOException {
         File customDirectory = new File("target/custom/m2repo");
         FileUtils.deleteDirectory(customDirectory);
         Map<String, Object> scannerProperties = new HashMap<>();
