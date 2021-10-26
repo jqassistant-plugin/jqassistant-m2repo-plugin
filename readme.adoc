@@ -1,6 +1,6 @@
 = jQAssistant Maven Repository Plugin
 
-This is the Maven Repository Plugin of https://www.jqassistant.org[jQAssistant^].
+This is the Maven Repository Plugin of https://jqassistant.org[jQAssistant^].
 It enables jQAssistant to scan and to analyze Maven Repositories.
 
-For more information on jQAssistant see https://www.jqassistant.org[^].
+For more information on jQAssistant see https://jqassistant.org[^].
