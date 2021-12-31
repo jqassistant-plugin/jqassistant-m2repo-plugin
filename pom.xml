@@ -39,16 +39,14 @@
         <tag>HEAD</tag>
     </scm>
 
-
     <properties>
         <jqa-java-plugin.version>1.12.0-SNAPSHOT</jqa-java-plugin.version>
         <jqa-maven3-plugin.version>1.12.0-SNAPSHOT</jqa-maven3-plugin.version>
         <jqa-plugin-common.version>1.12.0-SNAPSHOT</jqa-plugin-common.version>
-        <mavenVersion>3.5.0</mavenVersion>
-        <aetherVersion>1.1.0</aetherVersion>
-        <mavenResolverVersion>1.4.2</mavenResolverVersion>
-        <wagonVersion>3.2.0</wagonVersion>
-        <mavenIndexerVersion>6.0.0</mavenIndexerVersion>
+        <org.apache.maven.version>3.5.0</org.apache.maven.version>
+        <org.apache.maven.resolver.version>1.7.3</org.apache.maven.resolver.version>
+        <org.apache.maven.wagon.version>3.5.1</org.apache.maven.wagon.version>
+        <org.apache.maven.indexer.version>6.0.0</org.apache.maven.indexer.version>
         <luceneVersion>5.5.5</luceneVersion>
     </properties>
 
@@ -110,53 +108,84 @@
             <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
-
-        <!-- Aether -->
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-api</artifactId>
-            <version>${aetherVersion}</version>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-api</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-util</artifactId>
-            <version>${aetherVersion}</version>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-spi</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-impl</artifactId>
-            <version>${aetherVersion}</version>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-util</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-connector-basic</artifactId>
-            <version>${aetherVersion}</version>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-named-locks</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-transport-file</artifactId>
-            <version>${aetherVersion}</version>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-impl</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-transport-http</artifactId>
-            <version>${aetherVersion}</version>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-connector-basic</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-transport-file</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-transport-http</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>jcl-over-slf4j</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-transport-wagon</artifactId>
-            <version>${aetherVersion}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.maven.resolver</groupId>
-            <artifactId>maven-resolver-impl</artifactId>
-            <version>${mavenResolverVersion}</version>
+            <artifactId>maven-resolver-transport-wagon</artifactId>
+            <version>${org.apache.maven.resolver.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -167,7 +196,7 @@
         <dependency>
             <groupId>org.apache.maven.wagon</groupId>
             <artifactId>wagon-http-lightweight</artifactId>
-            <version>${wagonVersion}</version>
+            <version>${org.apache.maven.wagon.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -178,7 +207,7 @@
         <dependency>
             <groupId>org.apache.maven.indexer</groupId>
             <artifactId>indexer-core</artifactId>
-            <version>${mavenIndexerVersion}</version>
+            <version>${org.apache.maven.indexer.version}</version>
             <exclusions>
                 <!-- Exclude dependencies provided by jQA core framework-->
                 <exclusion>
@@ -222,7 +251,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
-            <version>${mavenVersion}</version>
+            <version>${org.apache.maven.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.maven</groupId>
@@ -249,13 +278,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-resolver-provider</artifactId>
-            <version>${mavenVersion}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${org.apache.maven.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
