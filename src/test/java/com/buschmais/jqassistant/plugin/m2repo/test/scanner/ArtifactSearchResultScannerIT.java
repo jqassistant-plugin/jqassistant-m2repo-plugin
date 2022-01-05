@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.buschmais.jqassistant.plugin.m2repo.api.model.ArtifactInfoDescriptor;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -74,16 +77,18 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat("Expecting a directory for the local Maven repository.", new File(localRepositoryDirectory, "localhost/" + REPO_SERVER_PORT).exists(),
                     equalTo(true));
             // Verify model
-            MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository) RETURN r").getSingleResult().get("r",
-                    MavenRepositoryDescriptor.class);
+            Map<String, Object> params=new HashMap<>();
+            params.put("url", TEST_REPOSITORY_URL);
+            MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository{url:$url}) RETURN r", params).getSingleResult()
+                .get("r", MavenRepositoryDescriptor.class);
             assertThat(repositoryDescriptor, not(nullValue()));
             List<MavenPomXmlDescriptor> containedModels = repositoryDescriptor.getContainedModels();
             assertThat(containedModels, hasSize(1));
             MavenPomXmlDescriptor model = containedModels.get(0);
-            assertThat(model.getGroupId(), nullValue());
+            assertThat(model.getGroupId(), equalTo(GROUP_ID));
             assertThat(model.getArtifactId(), equalTo(ARTIFACT_ID_XO_API));
             assertThat(model.getPackaging(), equalTo(PACKAGING_JAR));
-            assertThat(model.getVersion(), equalTo(null));
+            assertThat(model.getVersion(), equalTo(BASE_VERSION));
             assertThat(model, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) model).getFullQualifiedName(),
                     equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION));
@@ -101,6 +106,9 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(artifact, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) artifact).getLastModified(), equalTo(LAST_MODIFIED));
             assertThat(model.getDescribes().contains(artifact), equalTo(true));
+            assertThat(
+                artifact.getDependencies().stream().map(dependsOn -> dependsOn.getDependency()).map(a -> a.getGroup() + ":" + a.getName()).collect(toList()),
+                hasItems("javax.validation:validation-api", "com.google.guava:guava", "junit:junit", "org.hamcrest:hamcrest-library"));
             // Verify GAV
             List<MavenGroupIdDescriptor> groupdIs = query("MATCH (r:Maven:Repository)-[:CONTAINS_GROUP_ID]->(g:GroupId) RETURN g").getColumn("g");
             assertThat(groupdIs.size(), equalTo(1));

@@ -51,6 +51,25 @@ A remote Maven repository.
 | CONTAINS_ARTIFACT | <<:Maven:Artifact>> | 0..n        | References the artifacts in the repository
 |====
 
+For each artifact found in the repository the corresponding model (i.e. Maven pom.xml) is retrieved, resolved and scanned. The resulting <<:Maven:Pom:Xml>> node will be extended by a `:DESCRIBES` relation to the <<:Maven:Artifact>> node:
+
+----
+(pom:Maven:Pom:Xml:Effective)-[:DESCRIBES]->(artifact:Artifact)
+----
+
+The label `Effective` is  set only if the model could be resolved. In this case the dependencies declared by <<:Maven:Pom:Xml:>> are propagated as `:DEPENDS_ON` relations to the described main artifact  (i.e. the artifact with the same packaging/type and classifier as declared in the pom.xml header). This allows queries over transitive dependencies, e.g.:
+
+----
+MATCH
+  (platform:Artifact)
+WHERE
+  platform.fqn="jakarta.platform:jakarta.jakartaee-api:jar:9.1.0"
+MATCH
+  (platform)-[dependsOn:DEPENDS_ON*]->(dependency:Artifact)
+RETURN
+  *
+----
+
 [[:Release]]
 === Nodes labeled with `:Maven:Release`
 

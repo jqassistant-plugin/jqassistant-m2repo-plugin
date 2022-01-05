@@ -1,6 +1,20 @@
 
 = M2 Repository
 
+== 1.12.0
+* Implemented propagation of dependencies which are declared by a model (i.e. pom.xml) to the described main artifact. This allows queries to determine (transitive) dependencies between artifacts, e.g.
++
+----
+MATCH
+  (platform:Artifact)
+WHERE
+  platform.fqn="jakarta.platform:jakarta.jakartaee-api:jar:9.1.0"
+MATCH
+  (platform)-[dependsOn:DEPENDS_ON*]->(dependency:Artifact)
+RETURN
+  *
+----
+
 == 1.7.0
 
 * Improved repository scanner to correctly handle SNAPSHOTS and build up a hierarchical GAV structure

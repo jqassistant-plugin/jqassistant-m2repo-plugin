@@ -32,8 +32,9 @@ public class EffectiveModelBuilder implements PomModelBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EffectiveModelBuilder.class);
 
-    private ModelResolverImpl modelResolver;
-    private RawModelBuilder rawModelBuilder;
+    private final ModelResolverImpl modelResolver;
+    private final RawModelBuilder rawModelBuilder;
+    private final DefaultModelBuilder builder = new DefaultModelBuilderFactory().newInstance();
 
     /**
      * Constructor.
@@ -48,7 +49,6 @@ public class EffectiveModelBuilder implements PomModelBuilder {
 
     @Override
     public Model getModel(File pomFile) throws IOException {
-        DefaultModelBuilder builder = new DefaultModelBuilderFactory().newInstance();
         ModelBuildingRequest req = new DefaultModelBuildingRequest();
         req.setProcessPlugins(false);
         req.setPomFile(pomFile);
