@@ -3,7 +3,7 @@ package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 import java.io.File;
 import java.io.IOException;
 
-import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
+import com.buschmais.jqassistant.core.test.plugin.AbstractPluginIT;
 
 import org.apache.commons.io.FileUtils;
 import org.javastack.httpd.HttpServer;
@@ -39,20 +39,12 @@ public abstract class AbstractMavenRepositoryIT extends AbstractPluginIT {
         httpServer.start();
     }
 
-    protected void restartServer(String baseDirSuffix) throws IOException {
-        stopServer();
-        startServer(baseDirSuffix);
-    }
-
-
-
     /**
      * Stops the HTTP server.
      *
-     * @throws IOException
      */
     @AfterEach
-    public void stopServer() throws IOException {
+    public void stopServer() {
         if (httpServer != null) {
             httpServer.stop();
             httpServer = null;

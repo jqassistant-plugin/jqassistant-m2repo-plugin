@@ -2,6 +2,8 @@ package com.buschmais.jqassistant.plugin.m2repo.test.scanner;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +20,7 @@ import static org.hamcrest.Matchers.*;
 class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
 
     @Test
-    void scan() throws IOException {
+    void scan() throws IOException, URISyntaxException {
         Map<String, Object> scannerProperties = new HashMap<>();
         scannerProperties.put("m2repo.artifacts.scan", "true");
         scan(scannerProperties);
@@ -38,7 +40,7 @@ class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
     }
 
     @Test
-    void scanWithCustomDirectory() throws IOException {
+    void scanWithCustomDirectory() throws IOException, URISyntaxException {
         File customDirectory = new File("target/custom/m2repo");
         FileUtils.deleteDirectory(customDirectory);
         Map<String, Object> scannerProperties = new HashMap<>();
@@ -47,10 +49,10 @@ class MavenRepositoryScannerPluginIT extends AbstractMavenRepositoryIT {
         assertThat(new File(customDirectory, "localhost/9095").exists(), equalTo(true));
     }
 
-    private void scan(Map<String, Object> scannerProperties) throws IOException {
+    private void scan(Map<String, Object> scannerProperties) throws IOException, URISyntaxException {
         try {
             startServer("1");
-            getScanner(scannerProperties).scan(new URL(TEST_REPOSITORY_URL), TEST_REPOSITORY_URL, MavenScope.REPOSITORY);
+            getScanner(scannerProperties).scan(new URI(TEST_REPOSITORY_URL), TEST_REPOSITORY_URL, MavenScope.REPOSITORY);
         } finally {
             stopServer();
         }
