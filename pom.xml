@@ -52,14 +52,15 @@
     </scm>
 
     <properties>
-        <jqa-java-plugin.version>1.13.0-SNAPSHOT</jqa-java-plugin.version>
-        <jqa-maven3-plugin.version>1.13.0-SNAPSHOT</jqa-maven3-plugin.version>
-        <jqa-plugin-common.version>1.13.0-SNAPSHOT</jqa-plugin-common.version>
+        <jqa-java-plugin.version>2.0.0-M1</jqa-java-plugin.version>
+        <jqa-maven3-plugin.version>2.0.0-M1</jqa-maven3-plugin.version>
+        <jqa-plugin-common.version>2.0.0-M1</jqa-plugin-common.version>
+        <com.google.guice.version>5.1.0</com.google.guice.version>
+        <org.apache.lucene.version>8.11.2</org.apache.lucene.version>
         <org.apache.maven.version>3.5.0</org.apache.maven.version>
         <org.apache.maven.resolver.version>1.7.3</org.apache.maven.resolver.version>
         <org.apache.maven.wagon.version>3.5.1</org.apache.maven.wagon.version>
-        <org.apache.maven.indexer.version>6.0.0</org.apache.maven.indexer.version>
-        <luceneVersion>5.5.5</luceneVersion>
+        <org.apache.maven.indexer.version>6.2.2</org.apache.maven.indexer.version>
     </properties>
 
     <dependencies>
@@ -68,8 +69,8 @@
             <artifactId>test</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.buschmais.jqassistant.neo4jserver</groupId>
-            <artifactId>neo4jv3</artifactId>
+            <groupId>com.buschmais.jqassistant.neo4j</groupId>
+            <artifactId>embedded</artifactId>
         </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
@@ -238,16 +239,29 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- required for new lucene version -->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${com.google.guice.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>${luceneVersion}</version>
+            <version>${org.apache.lucene.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queries</artifactId>
-            <version>${luceneVersion}</version>
+            <version>${org.apache.lucene.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
