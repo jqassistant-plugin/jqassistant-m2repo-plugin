@@ -7,7 +7,7 @@ For more information on jQAssistant see https://jqassistant.org[^].
 
 == Using the jqassistant-m2repo-plugin
 
-NOTE:: Starting from jqassistant-m2repo-plugin v2.0.0, the GraphQL-Plugin resides under jqassistant-plugin.
+NOTE:: Starting from jqassistant-m2repo-plugin v2.0.0, the M2Repo-Plugin resides under jqassistant-plugin.
 Therefore, not only the repository location changed but also group id and artifact id were adapted from `com.buschmais.jqassistant.plugin:m2repo` to `org.jqassistant.plugin:jqassistant-m2repo-plugin`.
 
 NOTE:: From jQAssistant v2.0.0 onwards, it is not part of the core distribution anymore and a manual configuration as shown below is required.

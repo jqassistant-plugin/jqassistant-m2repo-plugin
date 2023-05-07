@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jqassistant.plugin</groupId>
         <artifactId>parent</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.1</version>
         <relativePath />
     </parent>
 
@@ -52,25 +52,23 @@
     </scm>
 
     <properties>
-        <jqa-java-plugin.version>2.0.0</jqa-java-plugin.version>
-        <jqa-maven3-plugin.version>2.0.0</jqa-maven3-plugin.version>
-        <jqa-plugin-common.version>2.0.0</jqa-plugin-common.version>
+        <junit.version>5.8.2</junit.version>
+        <jqa-java-plugin.version>2.0.1</jqa-java-plugin.version>
+        <jqa-maven3-plugin.version>2.0.1</jqa-maven3-plugin.version>
+        <jqa-plugin-common.version>2.0.1</jqa-plugin-common.version>
         <com.google.guice.version>5.1.0</com.google.guice.version>
         <org.apache.lucene.version>8.11.2</org.apache.lucene.version>
         <org.apache.maven.version>3.5.0</org.apache.maven.version>
         <org.apache.maven.resolver.version>1.7.3</org.apache.maven.resolver.version>
-        <org.apache.maven.wagon.version>3.5.1</org.apache.maven.wagon.version>
+        <org.apache.maven.wagon.version>3.5.3</org.apache.maven.wagon.version>
         <org.apache.maven.indexer.version>6.2.2</org.apache.maven.indexer.version>
+        <it.cache.directory>${project.basedir}/.cache</it.cache.directory>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.buschmais.jqassistant.core</groupId>
             <artifactId>test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.buschmais.jqassistant.neo4j</groupId>
-            <artifactId>embedded</artifactId>
         </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
@@ -86,13 +84,6 @@
             <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>maven3</artifactId>
             <version>${jqa-maven3-plugin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.buschmais.jqassistant.plugin</groupId>
-            <artifactId>common</artifactId>
-            <version>${jqa-plugin-common.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
@@ -194,7 +185,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.maven.wagon</groupId>
-            <artifactId>wagon-http-lightweight</artifactId>
+            <artifactId>wagon-http</artifactId>
             <version>${org.apache.maven.wagon.version}</version>
             <exclusions>
                 <exclusion>
@@ -334,6 +325,7 @@
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -345,5 +337,40 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>IT</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-invoker-plugin</artifactId>
+                        <version>3.3.0</version>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <goals>
+                                    <goal>install</goal>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+                                    <localRepositoryPath>${project.build.directory}/it-repository</localRepositoryPath>
+                                    <settingsFile>src/it/settings.xml</settingsFile>
+                                    <mergeUserSettings>true</mergeUserSettings>
+                                    <goals>
+                                        <goal>verify -e</goal>
+                                    </goals>
+                                    <streamLogs>true</streamLogs>
+                                    <postBuildHookScript>verify</postBuildHookScript>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

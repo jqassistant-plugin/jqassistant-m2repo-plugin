@@ -18,16 +18,18 @@ import org.apache.maven.index.creator.MavenArchetypeArtifactInfoIndexCreator;
 import org.apache.maven.index.creator.MavenPluginArtifactInfoIndexCreator;
 import org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator;
 import org.apache.maven.index.expr.SourcedSearchExpression;
+import org.apache.maven.index.incremental.DefaultIncrementalHandler;
 import org.apache.maven.index.updater.*;
-import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.authentication.AuthenticationInfo;
 import org.apache.maven.wagon.events.TransferEvent;
 import org.apache.maven.wagon.events.TransferListener;
 import org.apache.maven.wagon.observers.AbstractTransferListener;
-import org.codehaus.plexus.*;
+import org.apache.maven.wagon.providers.http.HttpWagon;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Collections.emptyList;
 
 /**
  * This class downloads and updates the remote maven index.
@@ -39,8 +41,6 @@ public class MavenIndex implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenIndex.class);
 
     private IndexingContext indexingContext;
-
-    private PlexusContainer plexusContainer;
 
     private Indexer indexer;
 
@@ -69,7 +69,7 @@ public class MavenIndex implements AutoCloseable {
         this.password = password;
         try {
             createIndexingContext(repoUrl, repositoryDirectory, indexDirectory);
-        } catch (IllegalArgumentException | PlexusContainerException | ComponentLookupException e) {
+        } catch (IllegalArgumentException e) {
             throw new IOException(e);
         }
     }
@@ -87,20 +87,21 @@ public class MavenIndex implements AutoCloseable {
      * @throws IOException
      */
     private void createIndexingContext(URL repoUrl, File repositoryDirectory, File indexDirectory)
-            throws PlexusContainerException, ComponentLookupException, ExistingLuceneIndexMismatchException, IllegalArgumentException, IOException {
-        DefaultContainerConfiguration config = new DefaultContainerConfiguration();
-        config.setClassPathScanning(PlexusConstants.SCANNING_INDEX);
-        plexusContainer = new DefaultPlexusContainer(config);
-        indexer = plexusContainer.lookup(DefaultIndexer.class);
+            throws  ExistingLuceneIndexMismatchException, IllegalArgumentException, IOException {
+        DefaultSearchEngine searchEngine = new DefaultSearchEngine();
+        DefaultIndexerEngine indexerEngine = new DefaultIndexerEngine();
+        DefaultQueryCreator queryCreator = new DefaultQueryCreator();
+        indexer = new DefaultIndexer(searchEngine, indexerEngine, queryCreator);
+
         // Files where local cache is (if any) and Lucene Index should be located
         String repoSuffix = repoUrl.getHost();
         File localIndexDir = new File(indexDirectory, "repo-index");
         // Creators we want to use (search for fields it defines)
         List<IndexCreator> indexers = new ArrayList<>();
-        indexers.add(plexusContainer.lookup(MinimalArtifactInfoIndexCreator.class));
-        indexers.add(plexusContainer.lookup(JarFileContentsIndexCreator.class));
-        indexers.add(plexusContainer.lookup(MavenPluginArtifactInfoIndexCreator.class));
-        indexers.add(plexusContainer.lookup(MavenArchetypeArtifactInfoIndexCreator.class));
+        indexers.add( new MinimalArtifactInfoIndexCreator());
+        indexers.add(new JarFileContentsIndexCreator());
+        indexers.add(new MavenPluginArtifactInfoIndexCreator());
+        indexers.add(new MavenArchetypeArtifactInfoIndexCreator());
 
         // Create context for central repository index
         indexingContext = indexer.createIndexingContext("jqa-cxt-" + repoSuffix, "jqa-repo-id-" + repoSuffix, repositoryDirectory, localIndexDir,
@@ -134,14 +135,9 @@ public class MavenIndex implements AutoCloseable {
         if (indexingContext.getTimestamp() != null) {
             LOGGER.info("Current Maven index timestamp: {}", indexingContext.getTimestamp());
         }
-        IndexUpdater indexUpdater;
-        Wagon httpWagon;
-        try {
-            indexUpdater = plexusContainer.lookup(DefaultIndexUpdater.class);
-            httpWagon = plexusContainer.lookup(Wagon.class, "http");
-        } catch (ComponentLookupException e) {
-            throw new IOException(e);
-        }
+        DefaultIncrementalHandler incrementalHandler = new DefaultIncrementalHandler();
+        IndexUpdater indexUpdater =new DefaultIndexUpdater(incrementalHandler, emptyList());
+        HttpWagon httpWagon = new HttpWagon();
 
         TransferListener listener = new AbstractTransferListener() {
             @Override
