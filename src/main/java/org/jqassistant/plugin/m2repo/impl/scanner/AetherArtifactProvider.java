@@ -6,8 +6,6 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
-import org.jqassistant.plugin.m2repo.api.ArtifactProvider;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -19,6 +17,7 @@ import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.Authentication;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -27,8 +26,12 @@ import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
+import org.jqassistant.plugin.m2repo.api.ArtifactProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_IGNORE;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_DAILY;
 
 /**
  * Transfers artifacts from a remote repository to a local repository.
@@ -39,11 +42,11 @@ public class AetherArtifactProvider implements ArtifactProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AetherArtifactProvider.class);
 
-    private URL url;
+    private final URL url;
 
-    private String username;
+    private final String username;
 
-    private String password;
+    private final String password;
 
     private final File repositoryRoot;
 
@@ -75,7 +78,10 @@ public class AetherArtifactProvider implements ArtifactProvider {
         String repositoryId = getRepositoryId(repositoryUrl);
         String url = StringUtils.replace(repositoryUrl.toString(), repositoryUrl.getUserInfo() + "@", StringUtils.EMPTY);
         Authentication auth = authBuilder.build();
-        repository = new RemoteRepository.Builder(repositoryId, "default", url).setAuthentication(auth).build();
+        RepositoryPolicy repositoryPolicy = new RepositoryPolicy(true, UPDATE_POLICY_DAILY, CHECKSUM_POLICY_IGNORE);
+        repository = new RemoteRepository.Builder(repositoryId, "default", url).setAuthentication(auth)
+            .setPolicy(repositoryPolicy)
+            .build();
         repositorySystem = newRepositorySystem();
         this.repositoryRoot = new File(workDirectory, repositoryId).getAbsoluteFile();
         LOGGER.info("Using local repository '{}' for URL '{}'", repositoryRoot.getAbsolutePath(), url);
@@ -84,7 +90,6 @@ public class AetherArtifactProvider implements ArtifactProvider {
 
     /**
      * Determines the repositoryId from the repository URL.
-     *
      * Id format: "host/port/path" (the port segment is optional).
      *
      * @param repositoryUrl

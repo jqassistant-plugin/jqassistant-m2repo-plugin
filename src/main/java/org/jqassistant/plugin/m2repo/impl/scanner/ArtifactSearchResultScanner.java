@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.*;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.store.api.Store;
@@ -75,58 +72,73 @@ public class ArtifactSearchResultScanner {
 
         BlockingQueue<ArtifactTask.Result> queue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
         ExecutorService pool = Executors.newFixedThreadPool(1, r -> new Thread(r, ArtifactTask.class.getSimpleName()));
-        pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
-
-        Cache<String, MavenPomXmlDescriptor> cache = Caffeine.newBuilder().maximumSize(256).build();
+        Future<?> future = pool.submit(new ArtifactTask(artifactSearchResult, artifactFilter, scanArtifacts, queue, artifactProvider));
 
         LOGGER.info("Starting scan.");
         StopWatch stopwatch = StopWatch.createStarted();
-        long artifactCount = 0;
-        ArtifactTask.Result result;
         try {
-            do {
-                result = queue.take();
-                if (result != ArtifactTask.Result.LAST) {
-                    ArtifactInfo artifactInfo = result.getArtifactInfo();
-                    Coordinates artifactCoordinates = new ArtifactInfoCoordinates(artifactInfo);
-                    LOGGER.debug("Processing '{}'.", artifactInfo);
-                    long lastModified = artifactInfo.getLastModified();
-                    boolean snapshot = MavenArtifactHelper.isSnapshot(artifactCoordinates);
-                    Optional<ArtifactResult> modelArtifactResult = result.getModelArtifactResult();
-                    MavenPomXmlDescriptor modelDescriptor = null;
-                    if (modelArtifactResult.isPresent()) {
-                        Artifact modelArtifact = modelArtifactResult.get().getArtifact();
-                        modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, effectiveModelBuilder, cache);
-                    } else {
-                        LOGGER.warn("No model found for " + artifactInfo);
-                    }
-                    // Skip if the POM itself is the artifact
-                    if (!EXTENSION_POM.equals(artifactInfo.getPackaging())) { // Note: packaging can be null
-                        MavenArtifactDescriptor mavenArtifactDescriptor = repositoryDescriptor.findArtifact(MavenArtifactHelper.getId(artifactCoordinates));
-                        if (mavenArtifactDescriptor == null) {
-                            mavenArtifactDescriptor = getArtifact(artifactCoordinates, result.getArtifactResult(), snapshot, lastModified);
-                            if (modelDescriptor != null) {
-                                // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g. due to an invalid model)
-                                modelDescriptor.getDescribes().add(mavenArtifactDescriptor);
-                                propagateDependencies(modelDescriptor, mavenArtifactDescriptor);
-                            }
-                            repositoryDescriptor.addArtifact(mavenArtifactDescriptor);
-                            gavResolver.resolve(artifactCoordinates).getArtifacts().add(mavenArtifactDescriptor);
-                        }
-                    }
-                    artifactCount++;
-                    if (artifactCount % 500 == 0) {
-                        LOGGER.info("Processed {}/{} artifacts (duration: {}).", artifactCount, artifactSearchResult.getSize(), ofMillis(stopwatch.getTime()));
-                        scanner.getContext().getStore().flush();
-                    }
-                }
-            } while (result != ArtifactTask.Result.LAST);
+            long artifactCount = consume(artifactSearchResult, queue, effectiveModelBuilder, gavResolver, repositoryDescriptor, stopwatch);
+            if (future.isDone()) {
+                // force potential exception from task to be thrown
+                future.get();
+            }
+            LOGGER.info("Finished scan: {} artifacts (duration: {}).", artifactCount, ofMillis(stopwatch.getTime()));
         } catch (InterruptedException e) {
             throw new IOException("Interrupted while waiting for artifact result", e);
+        } catch (ExecutionException e) {
+            throw new IOException("Artifact task returned reported a problem.", e);
         } finally {
             pool.shutdownNow();
         }
-        LOGGER.info("Finished scan: {} artifacts (duration: {}).", artifactCount, ofMillis(stopwatch.getTime()));
+    }
+
+    private long consume(ArtifactSearchResult artifactSearchResult, BlockingQueue<ArtifactTask.Result> queue, PomModelBuilder effectiveModelBuilder,
+        GAVResolver gavResolver, MavenRepositoryDescriptor repositoryDescriptor, StopWatch stopwatch)
+        throws InterruptedException {
+        Cache<String, MavenPomXmlDescriptor> cache = Caffeine.newBuilder().maximumSize(256).build();
+        ArtifactTask.Result result;
+        long artifactCount = 0;
+        while ((result = queue.take()) != ArtifactTask.Result.LAST) {
+            ArtifactInfo artifactInfo = result.getArtifactInfo();
+            Coordinates artifactCoordinates = new ArtifactInfoCoordinates(artifactInfo);
+            LOGGER.debug("Processing '{}'.", artifactInfo);
+            long lastModified = artifactInfo.getLastModified();
+            boolean snapshot = MavenArtifactHelper.isSnapshot(artifactCoordinates);
+            Optional<ArtifactResult> modelArtifactResult = result.getModelArtifactResult();
+            MavenPomXmlDescriptor modelDescriptor = null;
+            if (modelArtifactResult.isPresent()) {
+                Artifact modelArtifact = modelArtifactResult.get()
+                    .getArtifact();
+                modelDescriptor = getModel(modelArtifact, snapshot, lastModified, repositoryDescriptor, effectiveModelBuilder, cache);
+            } else {
+                LOGGER.warn("No model found for " + artifactInfo);
+            }
+            // Skip if the POM itself is the artifact
+            if (!EXTENSION_POM.equals(artifactInfo.getPackaging())) { // Note: packaging can be null
+                MavenArtifactDescriptor mavenArtifactDescriptor = repositoryDescriptor.findArtifact(MavenArtifactHelper.getId(artifactCoordinates));
+                if (mavenArtifactDescriptor == null) {
+                    mavenArtifactDescriptor = getArtifact(artifactCoordinates, result.getArtifactResult(), snapshot, lastModified);
+                    if (modelDescriptor != null) {
+                        // Add DESCRIBES relation from model to artifact if it does not exist yet (e.g. due to an invalid model)
+                        modelDescriptor.getDescribes()
+                            .add(mavenArtifactDescriptor);
+                        propagateDependencies(modelDescriptor, mavenArtifactDescriptor);
+                    }
+                    repositoryDescriptor.addArtifact(mavenArtifactDescriptor);
+                    gavResolver.resolve(artifactCoordinates)
+                        .getArtifacts()
+                        .add(mavenArtifactDescriptor);
+                }
+            }
+            artifactCount++;
+            if (artifactCount % 500 == 0) {
+                LOGGER.info("Processed {}/{} artifacts (duration: {}).", artifactCount, artifactSearchResult.getSize(), ofMillis(stopwatch.getTime()));
+                scanner.getContext()
+                    .getStore()
+                    .flush();
+            }
+        }
+        return artifactCount;
     }
 
     /**
@@ -251,7 +263,7 @@ public class ArtifactSearchResultScanner {
      *     last modified date
      * @return The {@link ArtifactInfoDescriptor}.
      */
-    private <D extends MavenDescriptor> ArtifactInfoDescriptor markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot,
+    private void markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot,
         Long lastModified) {
         ArtifactInfoDescriptor artifactInfoDescriptor;
         Store store = scanner.getContext().getStore();
@@ -264,6 +276,5 @@ public class ArtifactSearchResultScanner {
             artifactInfoDescriptor.setFullQualifiedName(MavenArtifactHelper.getId(coordinates));
         }
         artifactInfoDescriptor.setLastModified(lastModified);
-        return artifactInfoDescriptor;
     }
 }

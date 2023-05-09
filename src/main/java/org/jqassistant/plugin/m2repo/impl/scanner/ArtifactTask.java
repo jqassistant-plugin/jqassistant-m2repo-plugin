@@ -2,6 +2,7 @@ package org.jqassistant.plugin.m2repo.impl.scanner;
 
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.ArtifactFilter;
 
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * Processes an {@link ArtifactSearchResult} and provides the found artifacts as
  * {@link Result}.
  */
-public class ArtifactTask implements Runnable {
+public class ArtifactTask implements Callable<Void> {
 
     /**
      * The result containing the model artifact and optionally the artifact itself.
@@ -106,7 +107,7 @@ public class ArtifactTask implements Runnable {
     }
 
     @Override
-    public void run() {
+    public Void call() {
         try {
             for (ArtifactInfo artifactInfo : artifactInfos) {
                 String groupId = artifactInfo.getGroupId();
@@ -136,6 +137,7 @@ public class ArtifactTask implements Runnable {
         } catch (InterruptedException e) {
             LOGGER.warn("Task has been interrupted.", e);
         }
+        return null;
     }
 
     private Optional<ArtifactResult> getArtifact(Artifact artifact) {
@@ -143,6 +145,7 @@ public class ArtifactTask implements Runnable {
             return Optional.of(this.artifactProvider.getArtifact(artifact));
         } catch (ArtifactResolutionException e) {
             LOGGER.warn("Cannot resolve artifact '" + artifact + "'.", e);
+            LOGGER.debug("Reason", e);
         }
         return Optional.empty();
     }
