@@ -261,12 +261,11 @@ public class ArtifactSearchResultScanner {
      *     if the artifact is a snapshot
      * @param lastModified
      *     last modified date
-     * @return The {@link ArtifactInfoDescriptor}.
      */
-    private void markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot,
-        Long lastModified) {
+    private <D extends MavenDescriptor> void markReleaseOrSnaphot(D descriptor, Coordinates coordinates, boolean snapshot, Long lastModified) {
         ArtifactInfoDescriptor artifactInfoDescriptor;
-        Store store = scanner.getContext().getStore();
+        Store store = scanner.getContext()
+            .getStore();
         if (snapshot) {
             artifactInfoDescriptor = store.addDescriptorType(descriptor, MavenSnapshotDescriptor.class);
         } else {
