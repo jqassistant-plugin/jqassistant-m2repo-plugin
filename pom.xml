@@ -1,11 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.jqassistant.plugin</groupId>
         <artifactId>parent</artifactId>
-        <version>2.0.1</version>
-        <relativePath />
+        <version>2.3.0</version>
+        <relativePath/>
     </parent>
 
     <artifactId>jqassistant-m2repo-plugin</artifactId>
@@ -46,22 +47,22 @@
 
     <scm>
         <connection>scm:git:https://github.com/jqassistant-plugin/jqassistant-m2repo-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/jqassistant-plugin/jqassistant-m2repo-plugin.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/jqassistant-plugin/jqassistant-m2repo-plugin.git
+        </developerConnection>
         <url>https://github.com/jqassistant-plugin/jqassistant-m2repo-plugin</url>
         <tag>HEAD</tag>
     </scm>
 
     <properties>
-        <junit.version>5.8.2</junit.version>
-        <jqa-java-plugin.version>2.0.1</jqa-java-plugin.version>
-        <jqa-maven3-plugin.version>2.0.1</jqa-maven3-plugin.version>
-        <jqa-plugin-common.version>2.0.1</jqa-plugin-common.version>
+        <jqa-maven3-plugin.version>${com.buschmais.jqassistant.version}</jqa-maven3-plugin.version>
         <com.google.guice.version>5.1.0</com.google.guice.version>
-        <org.apache.lucene.version>8.11.2</org.apache.lucene.version>
         <org.apache.maven.version>3.5.0</org.apache.maven.version>
-        <org.apache.maven.resolver.version>1.7.3</org.apache.maven.resolver.version>
+        <org.apache.maven.resolver.version>1.9.20</org.apache.maven.resolver.version>
         <org.apache.maven.wagon.version>3.5.3</org.apache.maven.wagon.version>
         <org.apache.maven.indexer.version>6.2.2</org.apache.maven.indexer.version>
+        <org.apache.lucene.version/>
+        <org.apache.lucene.version_neo4jv4>8.11.2</org.apache.lucene.version_neo4jv4>
+        <org.apache.lucene.version_neo4jv5>9.10.0</org.apache.lucene.version_neo4jv5>
         <it.cache.directory>${project.basedir}/.cache</it.cache.directory>
     </properties>
 
@@ -73,23 +74,23 @@
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>common</artifactId>
-            <version>${jqa-plugin-common.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>java</artifactId>
-            <version>${jqa-java-plugin.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>maven3</artifactId>
             <version>${jqa-maven3-plugin.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>java</artifactId>
             <type>test-jar</type>
-            <version>${jqa-java-plugin.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -99,89 +100,64 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.buschmais.xo</groupId>
+            <artifactId>xo.api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-api</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-spi</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-util</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-named-locks</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-impl</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-connector-basic</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-transport-file</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-transport-http</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-transport-wagon</artifactId>
             <version>${org.apache.maven.resolver.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.wagon</groupId>
@@ -248,6 +224,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>${org.apache.lucene.version}</version>
@@ -258,6 +239,11 @@
             <artifactId>lucene-queries</artifactId>
             <version>${org.apache.lucene.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-highlighter</artifactId>
+            <version>${org.apache.lucene.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -309,16 +295,28 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+
 
         <!-- test -->
         <dependency>
@@ -336,22 +334,35 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>java-hamcrest</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <profiles>
+        <profile>
+            <id>neo4jv4</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <org.apache.lucene.version>${org.apache.lucene.version_neo4jv4}</org.apache.lucene.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>neo4jv5</id>
+            <activation>
+                <jdk>[17,)</jdk>
+            </activation>
+            <properties>
+                <org.apache.lucene.version>${org.apache.lucene.version_neo4jv5}</org.apache.lucene.version>
+            </properties>
+        </profile>
         <profile>
             <id>IT</id>
             <build>
