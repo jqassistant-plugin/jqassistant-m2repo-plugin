@@ -22,7 +22,7 @@ jqassistant:
 ----
 <1> Dependency to the m2repo plugin
 
-==Changelog
+== Changelog
 
 === 2.0.0
 - Moved Plugin from com.buschmais.jqassistant.plugin (core-Distribution) to org.jqassistant.plugin
