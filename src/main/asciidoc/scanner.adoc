@@ -1,5 +1,10 @@
+:toc:
+
+= Maven Scanners
+
+
 [[MavenRepositoryScanner]]
-== Scanner for remote Maven repositories
+== Maven repositories
 Downloads the repository index and retrieves all available new artifacts for scanning.
 
 This plugin should be triggered on the command line by providing an URL and a specific scope:
