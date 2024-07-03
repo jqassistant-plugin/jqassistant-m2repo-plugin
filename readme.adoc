@@ -22,6 +22,11 @@ jqassistant:
 ----
 <1> Dependency to the m2repo plugin
 
+== Available Scanners
+
+- link:src/main/asciidoc/scanner.adoc#:Maven:Repository[Maven repositories]
+
+
 == Changelog
 
 === 2.0.0
