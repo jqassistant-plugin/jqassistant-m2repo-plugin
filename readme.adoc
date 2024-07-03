@@ -24,7 +24,7 @@ jqassistant:
 
 == Available Scanners
 
-- link:src/main/asciidoc/scanner.adoc#:Maven:Repository[Maven repositories]
+- link:src/main/asciidoc/scanner.adoc#maven-repository[Maven repositories]
 
 
 == Changelog
