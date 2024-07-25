@@ -366,7 +366,7 @@
             </properties>
         </profile>
         <profile>
-            <id>IT</id>
+            <id>full-repo1</id>
             <build>
                 <plugins>
                     <plugin>
