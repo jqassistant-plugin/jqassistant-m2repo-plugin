@@ -1,0 +1,66 @@
+= jQAssistant Maven Repository Plugin
+
+This is the Maven Repository Plugin of https://jqassistant.org[jQAssistant^].
+It enables jQAssistant to scan and to analyze Maven Repositories.
+
+For more information on jQAssistant see https://jqassistant.org[^].
+
+== Using the jqassistant-m2repo-plugin
+
+NOTE:: Starting from jqassistant-m2repo-plugin v2.0.0, the M2Repo-Plugin resides under jqassistant-plugin.
+Therefore, not only the repository location changed but also group id and artifact id were adapted from `com.buschmais.jqassistant.plugin:m2repo` to `org.jqassistant.plugin:jqassistant-m2repo-plugin`.
+
+NOTE:: From jQAssistant v2.0.0 onwards, it is not part of the core distribution anymore and a manual configuration as shown below is required.
+
+[source, yaml]
+----
+jqassistant:
+  plugins:
+    - group-id: org.jqassistant.plugin <1>
+      artifact-id: jqassistant-m2repo-plugin
+      version: ${jqassistant.m2repo-plugin.version}
+----
+<1> Dependency to the m2repo plugin
+
+== Available Scanners
+
+- link:src/main/asciidoc/scanner.adoc#maven-repository[Maven repositories]
+
+
+== Changelog
+
+=== 2.0.0
+- Moved Plugin from com.buschmais.jqassistant.plugin (core-Distribution) to org.jqassistant.plugin
+
+=== 1.12.0
+- Implemented propagation of dependencies which are declared by a model (i.e. pom.xml) to the described main artifact. This allows queries to determine (transitive) dependencies between artifacts, e.g.
++
+----
+MATCH
+  (platform:Artifact)
+WHERE
+  platform.fqn="jakarta.platform:jakarta.jakartaee-api:jar:9.1.0"
+MATCH
+  (platform)-[dependsOn:DEPENDS_ON*]->(dependency:Artifact)
+RETURN
+  *
+----
+
+=== 1.7.0
+
+- Improved repository scanner to correctly handle SNAPSHOTS and build up a hierarchical GAV structure
+- Download artifacts from repository in background while scanning to improve performance
+- Default value of property `m2repo.artifacts.scan` changed to `false`, i.e. only models are scanned by default
+
+=== 1.3
+
+- Only internal changes.
+
+=== 1.2
+
+- Maven coordinates changed from `com.buschmais.jqassistant.plugin:jqassistant.plugin.m2repo`
+  to `com.buschmais.jqassistant.plugin:m2repo`.
+- No functional changes since version 1.1.3.
+
+
+

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>@project.groupId@.it</groupId>
+	<artifactId>scan-repository</artifactId>
+	<version>@project.version@</version>
+
+	<properties>
+        <it.plugin.groupId>@project.groupId@</it.plugin.groupId>
+        <it.plugin.artifactId>@project.artifactId@</it.plugin.artifactId>
+        <it.plugin.version>@project.version@</it.plugin.version>
+        <it.m2repo.directory>@it.cache.directory@/m2</it.m2repo.directory>
+	</properties>
+
+	<build>
+		<plugins>
+            <plugin>
+				<groupId>com.buschmais.jqassistant</groupId>
+				<artifactId>jqassistant-maven-plugin</artifactId>
+				<version>@com.buschmais.jqassistant.version@</version>
+				<executions>
+					<execution>
+						<id>default-cli</id>
+						<goals>
+							<goal>scan</goal>
+							<goal>analyze</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+        </plugins>
+	</build>
+</project>

@@ -1,0 +1,14 @@
+<jqassistant-plugin xmlns="http://schema.jqassistant.org/plugin/v1.10"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://schema.jqassistant.org/plugin/v1.10 https://schema.jqassistant.org/plugin/jqassistant-plugin-v1.10.xsd"
+                    name="jQAssistant Maven 2 Repository Plugin" id="jqa.plugin.m2repo"
+                    version="${project.version}">
+    <description>Provides a scanner for maven repositories.</description>
+    <model>
+        <class>org.jqassistant.plugin.m2repo.api.model.MavenReleaseDescriptor</class>
+        <class>org.jqassistant.plugin.m2repo.api.model.MavenSnapshotDescriptor</class>
+    </model>
+    <scanner>
+        <class>org.jqassistant.plugin.m2repo.impl.scanner.MavenRepositoryScannerPlugin</class>
+    </scanner>
+</jqassistant-plugin>

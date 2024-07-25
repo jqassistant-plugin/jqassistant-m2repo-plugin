@@ -1,0 +1,163 @@
+:toc:
+
+= Maven Scanners
+
+
+[[MavenRepositoryScanner]]
+== Maven repositories
+Downloads the repository index and retrieves all available new artifacts for scanning.
+
+This plugin should be triggered on the command line by providing an URL and a specific scope:
+
+Examples: 
+[source,bash]
+----
+>jqassistant.cmd scan -u maven:repository::http://[<user>:<password>@]<repository url>
+>jqassistant.cmd scan -u maven:repository::http://foo:bar@example.com/m2repo
+----
+
+TIP: The plugin supports incremental runs on a maven repository. In this case only new artifacts will be downloaded and
+scanned. For incremental scanning it is necessary that the exactly the same URL is provided on sub-sequent scans.
+
+=== Configuration
+
+.Configuration properties
+[options="header"]
+|====
+| Property     			 | Description																		                | Default
+| m2repo.directory 		 | The directory for locally storing the downloaded artifacts (i.e. a local Maven repository).      |
+| m2repo.filter.includes | A comma separated list of artifact patterns to include in the scan                               | include all artifacts
+| m2repo.filter.excludes | A comma separated list of artifact patterns to exclude from the scan                             | exclude no artifacts
+| m2repo.artifacts.scan  | A boolean value. If true then the content of the artifacts is scanned, otherwise only the model. | false
+| m2repo.artifacts.keep  | A boolean value. If false then all downloaded artifacts are deleted after scanning.              | true
+|====
+
+TIP: The artifact patterns follow the Maven syntax, i.e. `[groupId]:[artifactId]:[type]:[version]`
+or `[groupId]:[artifactId]:[type]:[classifier]:[version]` and allow using wildcards.
+
+[[:Maven:Repository]]
+=== Nodes labeled with `:Maven:Repository`
+A remote Maven repository.
+
+.Properties of `:Maven:Repository`
+[options="header"]
+|====
+| Name      	| Description
+| url 			| the remote URL
+| lastUpdate	| timestamp of the last scan
+|====
+
+.Relations of `:Maven:Repository`
+[options="header"]
+|====
+| Name              | Target label(s)     | Cardinality | Description
+| CONTAINS          | <<:Maven:GroupId>>  | 0..n        | The artifact groups contained in the repository
+| CONTAINS_POM      | <<:Maven:Pom:Xml>>  | 0..n        | References the POMs in the repository
+| CONTAINS_ARTIFACT | <<:Maven:Artifact>> | 0..n        | References the artifacts in the repository
+|====
+
+For each artifact found in the repository the corresponding model (i.e. Maven pom.xml) is retrieved, resolved and scanned. The resulting <<:Maven:Pom:Xml>> node will be extended by a `:DESCRIBES` relation to the <<:Maven:Artifact>> node:
+
+----
+(pom:Maven:Pom:Xml:Effective)-[:DESCRIBES]->(artifact:Artifact)
+----
+
+The label `Effective` is  set only if the model could be resolved. In this case the dependencies declared by <<:Maven:Pom:Xml:>> are propagated as `:DEPENDS_ON` relations to the described main artifact  (i.e. the artifact with the same packaging/type and classifier as declared in the pom.xml header). This allows queries over transitive dependencies, e.g.:
+
+----
+MATCH
+  (platform:Artifact)
+WHERE
+  platform.fqn="jakarta.platform:jakarta.jakartaee-api:jar:9.1.0"
+MATCH
+  (platform)-[dependsOn:DEPENDS_ON*]->(dependency:Artifact)
+RETURN
+  *
+----
+
+[[:Release]]
+=== Nodes labeled with `:Maven:Release`
+
+Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as released Maven versions.
+
+.Properties of `:Release`
+[options="header"]
+|====
+| Name        | Description
+| fqn         | The fully qualified name of the artifact.
+| lastModifed | Timestamp of the last modification that is reported for the artifact.
+|====
+
+[[:Snapshot]]
+=== Nodes labeled with `:Maven:Snapshot`
+
+Qualifies <<:Maven:Pom>> and <<:Maven:Artifact>> nodes as Maven snapshot versions.
+
+.Properties of `:Snapshot`
+[options="header"]
+|====
+| Name        | Description
+| fqn         | The fully qualified name of the artifact.
+| lastModifed | timestamp of the last modification that is reported for the artifact
+|====
+
+
+[[:Maven:GroupId]]
+=== Nodes labeled with `:Maven:GroupId`
+
+Represents a group coordinate within <<:Maven:Repository>>.
+
+.Properties of `:GroupId`
+[options="header"]
+|====
+| Name        | Description
+| name        | The group name
+|====
+
+.Relations of `:Maven:GroupId`
+[options="header"]
+|====
+| Name              | Target label(s)       | Cardinality | Description
+| CONTAINS          | <<:Maven:ArtifactId>> | 0..n        | The contained artifacts
+|====
+
+
+[[:Maven:ArtifactId]]
+=== Nodes labeled with `:Maven:ArtifactId`
+
+Represents artifact coordinate within <<:Maven:GroupId>>.
+
+.Properties of `:ArtifactId`
+[options="header"]
+|====
+| Name        | Description
+| name        | The artifact name
+|====
+
+.Relations of `:Maven:ArtifactId`
+[options="header"]
+|====
+| Name              | Target label(s)    | Cardinality | Description
+| CONTAINS          | <<:Maven:Version>> | 0..n        | The contained artifact versions
+|====
+
+
+[[:Maven:Version]]
+=== Nodes labeled with `:Maven:Version`
+
+Represents a version coordinate within <<:Maven:ArtifactId>>.
+
+.Properties of `:Version`
+[options="header"]
+|====
+| Name        | Description
+| name        | The version
+|====
+
+.Relations of `:Maven:Version`
+[options="header"]
+|====
+| Name              | Target label(s)     | Cardinality | Description
+| CONTAINS          | <<:Maven:Artifact>> | 0..n        | The contained artifacts
+|====
+
