@@ -63,6 +63,7 @@
         <org.apache.lucene.version/>
         <org.apache.lucene.version_neo4jv4>8.11.2</org.apache.lucene.version_neo4jv4>
         <org.apache.lucene.version_neo4jv5>9.11.0</org.apache.lucene.version_neo4jv5>
+        <httpd.version>1.1.2</httpd.version>
         <it.cache.directory>${project.basedir}/.cache</it.cache.directory>
     </properties>
 
@@ -96,7 +97,7 @@
         <dependency>
             <groupId>org.javastack</groupId>
             <artifactId>httpd</artifactId>
-            <version>1.0.0</version>
+            <version>${httpd.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
