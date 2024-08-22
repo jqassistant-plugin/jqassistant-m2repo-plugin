@@ -56,7 +56,7 @@
     <properties>
         <jqa-maven3-plugin.version>${com.buschmais.jqassistant.version}</jqa-maven3-plugin.version>
         <com.google.guice.version>5.1.0</com.google.guice.version>
-        <org.apache.maven.version>3.6.3</org.apache.maven.version>
+        <org.apache.maven.version>3.9.9</org.apache.maven.version>
         <org.apache.maven.resolver.version>1.9.22</org.apache.maven.resolver.version>
         <org.apache.maven.wagon.version>3.5.3</org.apache.maven.wagon.version>
         <org.apache.maven.indexer.version>6.2.2</org.apache.maven.indexer.version>
