@@ -43,11 +43,11 @@ public class ArtifactTask implements Callable<Void> {
          * {@link ArtifactInfo}.
          *
          * @param artifactInfo
-         *            The {@link ArtifactInfo}.
+         *     The {@link ArtifactInfo}.
          * @param modelArtifactResult
-         *            The {@link ArtifactResult} of the model.
+         *     The {@link ArtifactResult} of the model.
          * @param artifactResult
-         *            The {@link ArtifactResult} of the artifact.
+         *     The {@link ArtifactResult} of the artifact.
          */
         private Result(ArtifactInfo artifactInfo, Optional<ArtifactResult> modelArtifactResult, Optional<ArtifactResult> artifactResult) {
             this.artifactInfo = artifactInfo;
@@ -72,7 +72,7 @@ public class ArtifactTask implements Callable<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactTask.class);
 
-    private final ArtifactSearchResult artifactInfos;
+    private final ArtifactSearchResult artifactSearchResult;
 
     private final ArtifactFilter artifactFilter;
 
@@ -86,20 +86,20 @@ public class ArtifactTask implements Callable<Void> {
      * Constructor.
      *
      * @param artifactSearchResult
-     *            The {@link ArtifactSearchResult}.
+     *     The {@link ArtifactSearchResult}.
      * @param artifactFilter
-     *            The {@link ArtifactFilter}.
+     *     The {@link ArtifactFilter}.
      * @param fetchArtifact
-     *            if <code>true</code> the {@link Artifact} will be fetched,
-     *            otherwise only the model {@link Artifact} (i.e. pom).
+     *     if <code>true</code> the {@link Artifact} will be fetched,
+     *     otherwise only the model {@link Artifact} (i.e. pom).
      * @param queue
-     *            The {@link BlockingQueue} for publishing the {@link Result}s.
+     *     The {@link BlockingQueue} for publishing the {@link Result}s.
      * @param artifactProvider
-     *            The {@link ArtifactProvider} for fetching the {@link Artifact}s.
+     *     The {@link ArtifactProvider} for fetching the {@link Artifact}s.
      */
     ArtifactTask(ArtifactSearchResult artifactSearchResult, ArtifactFilter artifactFilter, boolean fetchArtifact, BlockingQueue<Result> queue,
-            ArtifactProvider artifactProvider) {
-        this.artifactInfos = artifactSearchResult;
+        ArtifactProvider artifactProvider) {
+        this.artifactSearchResult = artifactSearchResult;
         this.artifactFilter = artifactFilter;
         this.fetchArtifact = fetchArtifact;
         this.queue = queue;
@@ -109,7 +109,18 @@ public class ArtifactTask implements Callable<Void> {
     @Override
     public Void call() {
         try {
-            for (ArtifactInfo artifactInfo : artifactInfos) {
+            processArtifactSearchResult();
+        } catch (InterruptedException e) {
+            LOGGER.warn("Artifact task has been interrupted.", e);
+            Thread.currentThread()
+                .interrupt();
+        }
+        return null;
+    }
+
+    private void processArtifactSearchResult() throws InterruptedException {
+        try {
+            for (ArtifactInfo artifactInfo : artifactSearchResult) {
                 String groupId = artifactInfo.getGroupId();
                 String artifactId = artifactInfo.getArtifactId();
                 String classifier = artifactInfo.getClassifier();
@@ -123,7 +134,8 @@ public class ArtifactTask implements Callable<Void> {
                     LOGGER.debug("Fetching model '{}'.", modelArtifact);
                     Optional<ArtifactResult> modelArtifactResult = getArtifact(modelArtifact);
                     Optional<ArtifactResult> artifactResult;
-                    if (fetchArtifact && !artifact.getExtension().equals(EXTENSION_POM)) {
+                    if (fetchArtifact && !artifact.getExtension()
+                        .equals(EXTENSION_POM)) {
                         LOGGER.debug("Fetching artifact '{}'.", artifact);
                         artifactResult = getArtifact(artifact);
                     } else {
@@ -133,11 +145,12 @@ public class ArtifactTask implements Callable<Void> {
                     queue.put(result);
                 }
             }
-            queue.put(Result.LAST);
-        } catch (InterruptedException e) {
-            LOGGER.warn("Task has been interrupted.", e);
+        } catch (IncompatibleClassChangeError e) {
+            // Catching IncompatibleClassChangeError to detect incompatibilities in Maven libs. Note that errors are not propagated as uncaught exceptions.
+            LOGGER.error("Artifact task failed.", e);
+
         }
-        return null;
+        queue.put(Result.LAST);
     }
 
     private Optional<ArtifactResult> getArtifact(Artifact artifact) {
