@@ -9,7 +9,6 @@ import java.util.concurrent.*;
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
-import com.buschmais.jqassistant.plugin.common.api.model.ArtifactDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.DependsOnDescriptor;
 import com.buschmais.jqassistant.plugin.maven3.api.artifact.*;
 import com.buschmais.jqassistant.plugin.maven3.api.model.*;
@@ -224,7 +223,7 @@ public class ArtifactSearchResultScanner {
             Artifact artifact = artifactResult.get()
                 .getArtifact();
             LOGGER.info("Scanning artifact '{}'.", artifact);
-            ArtifactDescriptor descriptor = scan(artifact);
+            Descriptor descriptor = scan(artifact);
             mavenArtifactDescriptor = scanner.getContext()
                 .getStore()
                 .addDescriptorType(descriptor, MavenArtifactDescriptor.class);

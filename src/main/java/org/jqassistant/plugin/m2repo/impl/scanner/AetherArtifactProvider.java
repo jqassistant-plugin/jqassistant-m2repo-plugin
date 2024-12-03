@@ -136,8 +136,7 @@ public class AetherArtifactProvider implements ArtifactProvider {
      *             If the local index directoy cannot be created.
      */
     public MavenIndex getMavenIndex() throws IOException {
-        File indexRoot = new File(repositoryRoot, ".index");
-        return new MavenIndex(url, indexRoot, indexRoot, username, password);
+        return new MavenIndex(url, repositoryRoot, username, password);
     }
 
     /**

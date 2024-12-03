@@ -25,7 +25,6 @@ import org.apache.maven.wagon.events.TransferEvent;
 import org.apache.maven.wagon.events.TransferListener;
 import org.apache.maven.wagon.observers.AbstractTransferListener;
 import org.apache.maven.wagon.providers.http.HttpWagon;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +43,9 @@ public class MavenIndex implements AutoCloseable {
 
     private Indexer indexer;
 
-    private String password;
+    private final String password;
 
-    private String username;
+    private final String username;
 
     /**
      * Constructs a new object.
@@ -55,8 +54,6 @@ public class MavenIndex implements AutoCloseable {
      *            the repository url
      * @param repositoryDirectory
      *            the directory containing the local repository.
-     * @param indexDirectory
-     *            the directory for local index data
      * @param username
      *            the username.
      * @param password
@@ -64,7 +61,8 @@ public class MavenIndex implements AutoCloseable {
      * @throws IOException
      *             error during index creation/update
      */
-    public MavenIndex(URL repoUrl, File repositoryDirectory, File indexDirectory, String username, String password) throws IOException {
+    public MavenIndex(URL repoUrl, File repositoryDirectory, String username, String password) throws IOException {
+        File indexDirectory = new File(repositoryDirectory, ".index");
         this.username = username;
         this.password = password;
         try {
@@ -81,13 +79,9 @@ public class MavenIndex implements AutoCloseable {
      *            the URL of the remote Repository.
      * @param indexDirectory
      *            the dir for local index data
-     * @throws ComponentLookupException
-     * @throws ExistingLuceneIndexMismatchException
-     * @throws IllegalArgumentException
-     * @throws IOException
      */
     private void createIndexingContext(URL repoUrl, File repositoryDirectory, File indexDirectory)
-            throws  ExistingLuceneIndexMismatchException, IllegalArgumentException, IOException {
+            throws IllegalArgumentException, IOException {
         DefaultSearchEngine searchEngine = new DefaultSearchEngine();
         DefaultIndexerEngine indexerEngine = new DefaultIndexerEngine();
         DefaultQueryCreator queryCreator = new DefaultQueryCreator();

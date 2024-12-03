@@ -8,7 +8,8 @@ jqassistant:
       urls:
         - maven:repository::https://repo1.maven.org/maven2
     properties:
-      m2repo.filter.includes: jakarta.*:*:*
+      m2repo.filter.includes: org.jqassistant.plugin*:*:jar:*,de.kontext-e.jqassistant.plugin:*:jar:*
+      m2repo.artifacts.scan: true
       m2repo.directory: ${it.m2repo.directory}
   analyze:
     groups:
