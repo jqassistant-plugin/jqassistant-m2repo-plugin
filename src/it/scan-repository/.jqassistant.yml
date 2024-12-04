@@ -3,14 +3,20 @@ jqassistant:
     - group-id: ${it.plugin.groupId}
       artifact-id: ${it.plugin.artifactId}
       version: ${it.plugin.version}
+    - group-id: org.jqassistant.tooling.dashboard
+      artifact-id: jqassistant-dashboard-plugin
+      version: 1.0.0-SNAPSHOT
   scan:
     include:
       urls:
         - maven:repository::https://repo1.maven.org/maven2
     properties:
-      m2repo.filter.includes: org.jqassistant.plugin*:*:jar:*,de.kontext-e.jqassistant.plugin:*:jar:*
+      m2repo.filter.includes: com.buschmais.jqassistant.plugin*:*:jar:*,org.jqassistant.plugin*:*:jar:*,de.kontext-e.jqassistant.plugin:*:jar:*
       m2repo.artifacts.scan: true
       m2repo.directory: ${it.m2repo.directory}
   analyze:
+    execute-applied-concepts: true
+    concepts:
+      - jqassistant-dashboard:ComponentVersionReport
     groups:
       - it
