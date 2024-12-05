@@ -358,6 +358,9 @@
                                 <id>integration-test</id>
                                 <configuration>
                                     <settingsFile>src/it/settings.xml</settingsFile>
+                                    <environmentVariables>
+                                        <_JAVA_OPTIONS>-Djava.io.tmpdir=${project.basedir}/.cache/tmp</_JAVA_OPTIONS>
+                                    </environmentVariables>
                                 </configuration>
                             </execution>
                         </executions>

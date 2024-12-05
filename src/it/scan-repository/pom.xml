@@ -16,6 +16,23 @@
 	<build>
 		<plugins>
             <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${java.io.tmpdir}" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
 				<groupId>com.buschmais.jqassistant</groupId>
 				<artifactId>jqassistant-maven-plugin</artifactId>
 				<version>@com.buschmais.jqassistant.version@</version>

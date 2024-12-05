@@ -11,8 +11,9 @@ jqassistant:
       urls:
         - maven:repository::https://repo1.maven.org/maven2
     properties:
-      m2repo.filter.includes: com.buschmais.jqassistant.plugin*:*:jar:*,org.jqassistant.plugin*:*:jar:*,de.kontext-e.jqassistant.plugin:*:jar:*
       m2repo.artifacts.scan: true
+      m2repo.filter.includes: "com.buschmais.jqassistant.plugin*:*:jar,org.jqassistant.plugin*:*:jar,de.kontext-e.jqassistant.plugin:*:jar"
+      m2repo.filter.excludes: "*:*:*:sources,*:*:*:javadoc,*:*:*:tests"
       m2repo.directory: ${it.m2repo.directory}
   analyze:
     execute-applied-concepts: true
