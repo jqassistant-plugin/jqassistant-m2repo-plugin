@@ -136,16 +136,19 @@ public class MavenIndex implements AutoCloseable {
         TransferListener listener = new AbstractTransferListener() {
             @Override
             public void transferStarted(TransferEvent transferEvent) {
-                LOGGER.debug("Downloading " + transferEvent.getResource().getName());
+                LOGGER.info("Downloading {}", transferEvent.getResource()
+                    .getName());
             }
 
             @Override
             public void transferProgress(TransferEvent transferEvent, byte[] buffer, int length) {
+                LOGGER.debug("Received {} bytes", length);
             }
 
             @Override
             public void transferCompleted(TransferEvent transferEvent) {
-                LOGGER.debug("Downloading " + transferEvent.getResource().getName() + " successful");
+                LOGGER.info("Finished download of {}", transferEvent.getResource()
+                    .getName());
             }
         };
 
