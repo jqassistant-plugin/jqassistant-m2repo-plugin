@@ -7,6 +7,7 @@ jqassistant:
       artifact-id: jqassistant-dashboard-plugin
       version: 1.0.0-SNAPSHOT
   scan:
+    reset: false
     include:
       urls:
         - maven:repository::https://repo1.maven.org/maven2
