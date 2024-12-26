@@ -22,3 +22,10 @@ jqassistant:
      - jqassistant-dashboard:ComponentVersionReport
     groups:
       - it
+    report:
+      properties:
+        dashboard:
+          url: "http://localhost/"
+          owner: "jqassistant"
+          project: "plugins"
+          api-key: "jqa_token"
