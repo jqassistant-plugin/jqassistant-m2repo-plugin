@@ -3,9 +3,6 @@ jqassistant:
     - group-id: ${it.plugin.groupId}
       artifact-id: ${it.plugin.artifactId}
       version: ${it.plugin.version}
-    - group-id: org.jqassistant.tooling.dashboard
-      artifact-id: jqassistant-dashboard-plugin
-      version: 1.0.0-SNAPSHOT
   scan:
     reset: false
     include:
@@ -18,14 +15,5 @@ jqassistant:
       m2repo.directory: ${it.m2repo.directory}
   analyze:
     execute-applied-concepts: true
-    concepts:
-     - jqassistant-dashboard:ComponentVersionReport
     groups:
       - it
-    report:
-      properties:
-        dashboard:
-          url: "http://localhost/"
-          owner: "jqassistant"
-          project: "plugins"
-          api-key: "jqa_token"
