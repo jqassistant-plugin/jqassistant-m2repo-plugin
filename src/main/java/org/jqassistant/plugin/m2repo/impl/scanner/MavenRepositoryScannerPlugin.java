@@ -80,7 +80,7 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
     private File getLocalDirectory(ScannerContext context) {
         File localDirectory;
         if (localDirectoryName != null) {
-            localDirectory = new File(localDirectoryName);
+            localDirectory = new File(localDirectoryName).getAbsoluteFile();
             localDirectory.mkdirs();
         } else {
             localDirectory = context.getDataDirectory("m2repo");
