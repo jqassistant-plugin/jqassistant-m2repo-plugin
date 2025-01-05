@@ -3,6 +3,7 @@ package org.jqassistant.plugin.m2repo.impl.scanner;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
@@ -29,6 +30,7 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
     private static final String PROPERTY_NAME_FILTER_INCLUDES = "m2repo.filter.includes";
     private static final String PROPERTY_NAME_FILTER_EXCLUDES = "m2repo.filter.excludes";
     private static final String PROPERTY_NAME_DIRECTORY = "m2repo.directory";
+    private static final String DEFAULT_DATA_DIRECTORY = "m2repo";
 
     private boolean keepArtifacts;
     private boolean scanArtifacts;
@@ -80,10 +82,13 @@ public class MavenRepositoryScannerPlugin extends AbstractScannerPlugin<URL, Mav
     private File getLocalDirectory(ScannerContext context) {
         File localDirectory;
         if (localDirectoryName != null) {
-            localDirectory = new File(localDirectoryName).getAbsoluteFile();
+            localDirectory = Paths.get(localDirectoryName)
+                .toAbsolutePath()
+                .normalize()
+                .toFile();
             localDirectory.mkdirs();
         } else {
-            localDirectory = context.getDataDirectory("m2repo");
+            localDirectory = context.getDataDirectory(DEFAULT_DATA_DIRECTORY);
         }
         return localDirectory;
     }
