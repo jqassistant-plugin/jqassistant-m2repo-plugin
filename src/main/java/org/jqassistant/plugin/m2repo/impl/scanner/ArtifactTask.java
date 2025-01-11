@@ -124,9 +124,9 @@ public class ArtifactTask implements Callable<Void> {
                 String groupId = artifactInfo.getGroupId();
                 String artifactId = artifactInfo.getArtifactId();
                 String classifier = artifactInfo.getClassifier();
-                String packaging = artifactInfo.getPackaging();
+                String fileExtension = artifactInfo.getFileExtension();
                 String version = artifactInfo.getVersion();
-                Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, packaging, version);
+                Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, fileExtension, version);
                 if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
                     LOGGER.debug("Skipping '{}'.", artifactInfo);
                 } else {
