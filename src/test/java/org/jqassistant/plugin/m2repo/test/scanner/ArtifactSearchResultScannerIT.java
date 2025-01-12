@@ -37,9 +37,9 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
     private static final long LAST_MODIFIED = -1;
     private static final String PACKAGING_POM = "pom";
 
-    private ArtifactSearchResultScanner resultScanner;
-
     private MavenRepositoryDescriptor repositoryDescriptor;
+
+    AetherArtifactProvider artifactProvider;
 
     @BeforeEach
     void init() throws MalformedURLException {
@@ -47,21 +47,23 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
         repositoryDescriptor = store.create(MavenRepositoryDescriptor.class);
         repositoryDescriptor.setUrl(TEST_REPOSITORY_URL);
         store.commitTransaction();
-        AetherArtifactProvider artifactProvider = new AetherArtifactProvider(new URL(TEST_REPOSITORY_URL), localRepositoryDirectory);
-        resultScanner = new ArtifactSearchResultScanner(getScanner(), artifactProvider, new ArtifactFilter(null, null), true, true);
+        artifactProvider = new AetherArtifactProvider(new URL(TEST_REPOSITORY_URL), localRepositoryDirectory);
+
     }
 
     @Test
     public void modelAndArtifact() throws IOException {
-        verify();
+        verify(true);
     }
 
     @Test
     void modelOnly() throws IOException {
-        verify();
+        verify(false);
     }
 
-    private void verify() throws IOException {
+    private void verify(boolean scanArtifacts) throws IOException {
+        ArtifactSearchResultScanner resultScanner = new ArtifactSearchResultScanner(getScanner(), artifactProvider, new ArtifactFilter(null, null),
+            scanArtifacts, true);
         try {
             startServer("1");
             store.beginTransaction();
@@ -75,11 +77,12 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             resultScanner.scan(new ArtifactSearchResult(artifactInfos, artifactInfos.size()), repositoryDescriptor);
 
             assertThat("Expecting a directory for the local Maven repository.", new File(localRepositoryDirectory, "localhost/" + REPO_SERVER_PORT).exists(),
-                    equalTo(true));
+                equalTo(true));
             // Verify model
-            Map<String, Object> params=new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
             params.put("url", TEST_REPOSITORY_URL);
-            MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository{url:$url}) RETURN r", params).getSingleResult()
+            MavenRepositoryDescriptor repositoryDescriptor = store.executeQuery("MATCH (r:Maven:Repository{url:$url}) RETURN r", params)
+                .getSingleResult()
                 .get("r", MavenRepositoryDescriptor.class);
             assertThat(repositoryDescriptor, not(nullValue()));
             List<MavenPomXmlDescriptor> containedModels = repositoryDescriptor.getContainedModels();
@@ -91,7 +94,7 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(model.getVersion(), equalTo(BASE_VERSION));
             assertThat(model, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) model).getFullQualifiedName(),
-                    equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION));
+                equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_POM + ":" + VERSION));
             assertThat(((MavenSnapshotDescriptor) model).getLastModified(), equalTo(LAST_MODIFIED));
             // Verify artifact
             List<MavenArtifactDescriptor> containedArtifacts = repositoryDescriptor.getContainedArtifacts();
@@ -105,10 +108,13 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(artifact.getFullQualifiedName(), startsWith(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + PACKAGING_JAR + ":" + VERSION));
             assertThat(artifact, instanceOf(MavenSnapshotDescriptor.class));
             assertThat(((MavenSnapshotDescriptor) artifact).getLastModified(), equalTo(LAST_MODIFIED));
-            assertThat(model.getDescribes().contains(artifact), equalTo(true));
-            assertThat(
-                artifact.getDependencies().stream().map(dependsOn -> dependsOn.getDependency()).map(a -> a.getGroup() + ":" + a.getName()).collect(toList()),
-                hasItems("javax.validation:validation-api", "com.google.guava:guava", "junit:junit", "org.hamcrest:hamcrest-library"));
+            assertThat(model.getDescribes()
+                .contains(artifact), equalTo(true));
+            assertThat(artifact.getDependencies()
+                .stream()
+                .map(dependsOn -> dependsOn.getDependency())
+                .map(a -> a.getGroup() + ":" + a.getName())
+                .collect(toList()), hasItems("javax.validation:validation-api", "com.google.guava:guava", "junit:junit", "org.hamcrest:hamcrest-library"));
             // Verify GAV
             List<MavenGroupIdDescriptor> groupdIs = query("MATCH (r:Maven:Repository)-[:CONTAINS_GROUP_ID]->(g:GroupId) RETURN g").getColumn("g");
             assertThat(groupdIs.size(), equalTo(1));
@@ -126,7 +132,9 @@ class ArtifactSearchResultScannerIT extends AbstractMavenRepositoryIT {
             assertThat(version.getFullQualifiedName(), equalTo(GROUP_ID + ":" + ARTIFACT_ID_XO_API + ":" + BASE_VERSION));
             Set<MavenArtifactDescriptor> artifacts = version.getArtifacts();
             assertThat(artifacts.size(), equalTo(1));
-            assertThat(artifacts.stream().findFirst().get(), is(artifact));
+            assertThat(artifacts.stream()
+                .findFirst()
+                .get(), is(artifact));
         } finally {
             if (store.hasActiveTransaction()) {
                 store.rollbackTransaction();

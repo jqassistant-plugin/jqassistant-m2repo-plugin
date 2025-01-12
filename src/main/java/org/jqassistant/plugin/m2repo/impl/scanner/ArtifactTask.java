@@ -125,19 +125,17 @@ public class ArtifactTask implements Callable<Void> {
                 String artifactId = artifactInfo.getArtifactId();
                 String classifier = artifactInfo.getClassifier();
                 String fileExtension = artifactInfo.getFileExtension();
+                String packaging = artifactInfo.getPackaging();
                 String version = artifactInfo.getVersion();
-                Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, fileExtension, version);
-                if (!artifactFilter.match(RepositoryUtils.toArtifact(artifact))) {
+                if (!artifactFilter.match(RepositoryUtils.toArtifact(new DefaultArtifact(groupId, artifactId, classifier, packaging, version)))) {
                     LOGGER.debug("Skipping '{}'.", artifactInfo);
                 } else {
                     Artifact modelArtifact = new DefaultArtifact(groupId, artifactId, null, EXTENSION_POM, version);
-                    LOGGER.debug("Fetching model '{}'.", modelArtifact);
                     Optional<ArtifactResult> modelArtifactResult = getArtifact(modelArtifact);
                     Optional<ArtifactResult> artifactResult;
-                    if (fetchArtifact && !artifact.getExtension()
-                        .equals(EXTENSION_POM)) {
-                        LOGGER.debug("Fetching artifact '{}'.", artifact);
-                        artifactResult = getArtifact(artifact);
+                    if (fetchArtifact && !packaging.equals(EXTENSION_POM)) {
+                        DefaultArtifact downloadableArtifact = new DefaultArtifact(groupId, artifactId, classifier, fileExtension, version);
+                        artifactResult = getArtifact(downloadableArtifact);
                     } else {
                         artifactResult = Optional.empty();
                     }
@@ -145,15 +143,16 @@ public class ArtifactTask implements Callable<Void> {
                     queue.put(result);
                 }
             }
-        } catch (IncompatibleClassChangeError e) {
-            // Catching IncompatibleClassChangeError to detect incompatibilities in Maven libs. Note that errors are not propagated as uncaught exceptions.
+        } catch (Throwable e) {
+            // Catching any errors for logging. Note that errors are not propagated as uncaught exceptions.
             LOGGER.error("Artifact task failed.", e);
-
+        } finally {
+            queue.put(Result.LAST);
         }
-        queue.put(Result.LAST);
     }
 
     private Optional<ArtifactResult> getArtifact(Artifact artifact) {
+        LOGGER.info("Fetching artifact '{}'.", artifact);
         try {
             return Optional.of(this.artifactProvider.getArtifact(artifact));
         } catch (ArtifactResolutionException e) {
