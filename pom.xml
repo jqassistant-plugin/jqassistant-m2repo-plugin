@@ -54,7 +54,6 @@
     </scm>
 
     <properties>
-        <jqa-maven3-plugin.version>${com.buschmais.jqassistant.version}</jqa-maven3-plugin.version>
         <org.apache.maven.version>3.6.3</org.apache.maven.version>
         <org.apache.maven.resolver.version>1.9.22</org.apache.maven.resolver.version>
         <org.apache.maven.wagon.version>3.5.3</org.apache.maven.wagon.version>
@@ -67,6 +66,14 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>store</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>scanner</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.core</groupId>
             <artifactId>test</artifactId>
@@ -84,7 +91,6 @@
         <dependency>
             <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>maven3</artifactId>
-            <version>${jqa-maven3-plugin.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
