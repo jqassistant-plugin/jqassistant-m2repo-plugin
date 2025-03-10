@@ -16,8 +16,7 @@
     <url>https://jqassistant.org/</url>
 
     <description>
-        Plugin for jQAssistant to be able to scan and to
-        analyze a M2 repository.
+        The jQAssistant plugin providing a scanner for Maven 2 repositories.
     </description>
 
     <organization>
