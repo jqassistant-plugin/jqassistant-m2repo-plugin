@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jqassistant-report xmlns="http://schema.jqassistant.org/report/v2.9">
+  <context>
+    <build>
+      <name>jQAssistant Maven 2 Repository Plugin</name>
+      <timestamp>2026-11-16T16:40:09.91Z</timestamp>
+      <properties></properties>
+    </build>
+  </context>
+  <group id="jqassistant-plugin:Default" date="2026-11-16T16:40:44">
+    <group id="jqassistant-plugin-maven:Default" date="2026-11-16T16:40:44">
+      <constraint id="jqassistant-plugin-maven:GroupId">
+        <description>The groupId for jQAssistant plugin Maven projects must follow the pattern 'org.jqassistant.plugin.&lt;project&gt;'.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>68</duration>
+      </constraint>
+      <concept id="jqassistant-plugin-maven:ParentProject" abstract="false">
+        <description>Labels all Maven projects which declare "org.jqassistant.plugin:parent" as parent module with "Parent".</description>
+        <result>
+          <columns count="1" primary="parent">
+            <column>parent</column>
+          </columns>
+          <rows count="1">
+            <row key="133b2f7761a6ee3e941d8896c991aaff4df76ccd52b02b2a751da91225b05ef0">
+              <column name="parent">
+                <element language="Generic">Named</element>
+                <source fileName="/home/runner/work/jqassistant-m2repo-plugin/jqassistant-m2repo-plugin"></source>
+                <value>jQAssistant Maven 2 Repository Plugin</value>
+              </column>
+            </row>
+          </rows>
+        </result>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>1</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>95</duration>
+      </concept>
+      <constraint id="jqassistant-plugin-maven:MavenModulesMustUseParentGroupId">
+        <description>All Maven projects must define the same groupId as the parent of the plugin project.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>58</duration>
+        <required-concept id="jqassistant-plugin-maven:ParentProject">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <constraint id="jqassistant-plugin-maven:ParentProjectMustDefineDeveloper">
+        <description>At least one developer must be specified in the "developers" section of the parent pom.xml of a plugin project.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>59</duration>
+        <required-concept id="jqassistant-plugin-maven:ParentProject">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <constraint id="jqassistant-plugin-maven:ParentProjectMustDefineScmSection">
+        <description>A SCM section having both connection and developerConnection set to "scm:git:https://github.com/jqassistant-plugin/_repository-name_" must be specified in the parent pom.xml of a plugin project.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>78</duration>
+        <required-concept id="jqassistant-plugin-maven:ParentProject">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <constraint id="jqassistant-plugin-maven:ParentProjectMustDefineUrl">
+        <description>The project URL must be defined in the parent pom.xml of a plugin project.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>134</duration>
+        <required-concept id="jqassistant-plugin-maven:ParentProject">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <duration>668</duration>
+    </group>
+    <group id="jqassistant-plugin-test:Default" date="2026-11-16T16:40:45">
+      <concept id="junit5:ParameterizedTestMethod" abstract="false">
+        <description>Finds all test methods (i.e. annotated with "@org.junit.jupiter.api.ParameterizedTest") and
+labels them with "Test", "Parameterized", and "Junit5".</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>49</duration>
+      </concept>
+      <concept id="junit5:TestMethod" abstract="false">
+        <description>Finds all test methods (i.e. annotated with "@org.junit.jupiter.api.Test") and
+labels them with "Test" and "Junit5".</description>
+        <result>
+          <columns count="1" primary="Test">
+            <column>Test</column>
+          </columns>
+          <rows count="11">
+            <row key="0358edc357b02c44f8d440704402e507862a5a3ad58b2f5fb953e57b2f6feff8">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java" startLine="25" endLine="30">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void includesClassifier()</value>
+              </column>
+            </row>
+            <row key="a27bdc79b262968ada6305df01e333cd23ae85f1c4fd792d24aed243b3971485">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java" startLine="34" endLine="37">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void excludes()</value>
+              </column>
+            </row>
+            <row key="9ca25f6e90c414760cb2430d8f51ba74eb52938feef74676386bcc367d74270f">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactSearchResultScannerIT.java" startLine="56" endLine="57">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void modelAndArtifact()</value>
+              </column>
+            </row>
+            <row key="c586b196d56f92e29f364c0f29bb5d5dbcb135d586da02b9df01e2cfcdc35642">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java" startLine="41" endLine="46">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void excludesClassifier()</value>
+              </column>
+            </row>
+            <row key="594bd1d83f4925d82f70f013bbdab774728af12191b090cd9273225483348eb5">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java" startLine="50" endLine="53">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void includesAndExcludes()</value>
+              </column>
+            </row>
+            <row key="a10ff08a5f87e169a6c2a71112e7fd9b7abf9ea8631dfe7443e8567930419350">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java" startLine="18" endLine="21">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void includes()</value>
+              </column>
+            </row>
+            <row key="f2dd01c5596c9f0dfbf942a8792a149457e8336df56f320db5125370e6391545">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/MavenRepositoryScannerPluginIT.java" startLine="23" endLine="39">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void scan()</value>
+              </column>
+            </row>
+            <row key="c7cf28963faa0ca29af001648799edee6512b32f22e2a1499695e6570326ab51">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/MavenCentralScanMT.java" startLine="29" endLine="32">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void scanModelOnly()</value>
+              </column>
+            </row>
+            <row key="e2550513313425d79d7a265c9951bfa7da18887a9654e3bd076c7bee95dabac8">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/MavenRepositoryScannerPluginIT.java" startLine="43" endLine="49">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void scanWithCustomDirectory()</value>
+              </column>
+            </row>
+            <row key="04b4afea5922861b4df2b325f5a8db30d6044f458864487c381cee8d73e29c4a">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactSearchResultScannerIT.java" startLine="61" endLine="62">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void modelOnly()</value>
+              </column>
+            </row>
+            <row key="ccac5cabbb7e76f0262d5a6d36ab89a97360b9343e4246c61b3a878ec175164d">
+              <column name="Test">
+                <element language="Java">Method</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java" startLine="57" endLine="60">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>void noFilter()</value>
+              </column>
+            </row>
+          </rows>
+        </result>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>11</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>55</duration>
+      </concept>
+      <concept id="junit5:TestTemplateMethod" abstract="false">
+        <description>Labels all methods annotated by "@org.junit.jupiter.api.TestTemplate"
+with "Junit5", "Test" and "Template".</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>64</duration>
+      </concept>
+      <concept id="junit5:RepeatedTestMethod" abstract="false">
+        <description>Finds all test methods (i.e. annotated with "@org.junit.jupiter.api.RepeatedTest") and
+labels them with "Test", "Repeated", and "Junit5".</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>41</duration>
+      </concept>
+      <concept id="junit5:TestClass" abstract="false">
+        <description>Labels all classes containing test methods with "Test" and "Junit5".</description>
+        <result>
+          <columns count="2" primary="TestClass">
+            <column>TestClass</column>
+            <column>TestMethods</column>
+          </columns>
+          <rows count="4">
+            <row key="044de0c91365149cc374f2e84e975ca4692af1b56ea403162137c1f2f755b566">
+              <column name="TestClass">
+                <element language="Java">Type</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/MavenCentralScanMT.java">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>org.jqassistant.plugin.m2repo.test.scanner.MavenCentralScanMT</value>
+              </column>
+              <column name="TestMethods">
+                <value>void scanModelOnly()</value>
+              </column>
+            </row>
+            <row key="d8e8b67a5317d0af69c2275d46a07ba2bb41fa4e5fe9ce2081bb597aa02e35b2">
+              <column name="TestClass">
+                <element language="Java">Type</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/MavenRepositoryScannerPluginIT.java">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>org.jqassistant.plugin.m2repo.test.scanner.MavenRepositoryScannerPluginIT</value>
+              </column>
+              <column name="TestMethods">
+                <value>void scan(), void scanWithCustomDirectory()</value>
+              </column>
+            </row>
+            <row key="4e03d1e64f7e1747fc4e08135473f7ea0214f84c1e075569270937506367bd1a">
+              <column name="TestClass">
+                <element language="Java">Type</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactFilterTest.java">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>org.jqassistant.plugin.m2repo.test.scanner.ArtifactFilterTest</value>
+              </column>
+              <column name="TestMethods">
+                <value>void includes(), void includesClassifier(), void excludes(), void excludesClassifier(), void includesAndExcludes(), void noFilter()</value>
+              </column>
+            </row>
+            <row key="ff54e2b4de36ffcb42c7045453c0bb6cef31cb5862516859447c1e35f5648983">
+              <column name="TestClass">
+                <element language="Java">Type</element>
+                <source fileName="/org/jqassistant/plugin/m2repo/test/scanner/ArtifactSearchResultScannerIT.java">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT-tests.test-jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="test-jar" version="2.1.0-SNAPSHOT" classifier="tests"></parent>
+                </source>
+                <value>org.jqassistant.plugin.m2repo.test.scanner.ArtifactSearchResultScannerIT</value>
+              </column>
+              <column name="TestMethods">
+                <value>void modelAndArtifact(), void modelOnly()</value>
+              </column>
+            </row>
+          </rows>
+        </result>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>4</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>69</duration>
+        <required-concept id="junit5:ParameterizedTestMethod">
+          <status>success</status>
+        </required-concept>
+        <required-concept id="junit5:TestMethod">
+          <status>success</status>
+        </required-concept>
+        <required-concept id="junit5:TestTemplateMethod">
+          <status>success</status>
+        </required-concept>
+        <required-concept id="junit5:RepeatedTestMethod">
+          <status>success</status>
+        </required-concept>
+      </concept>
+      <concept id="jqassistant-plugin-test:IT" abstract="false">
+        <description>Adds a label "IntegrationTest" to all non-abstract classes deriving from AbstractPluginIT or AbstractJavaPluginIT.</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>75</duration>
+        <required-concept id="junit5:TestClass">
+          <status>success</status>
+        </required-concept>
+      </concept>
+      <constraint id="jqassistant-plugin-test:IntegrationTestClassSuffix">
+        <description>All integration test classes must have the name suffix "IT" for being executed using the Maven Failsafe Plugin.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>22</duration>
+        <required-concept id="jqassistant-plugin-test:IT">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <duration>418</duration>
+    </group>
+    <group id="jqassistant-plugin-plugin:Default" date="2026-11-16T16:40:45">
+      <concept id="neo4j:Procedure" abstract="false">
+        <description>Labels all types annotated with "@org.neo4j.procedure.Procedure" with `Neo4j` and `Procedure`.</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>37</duration>
+      </concept>
+      <concept id="jqassistant-plugin-plugin:PluginDescriptor" abstract="false">
+        <description>Labels jQAssistant plugin descriptor files with `jQAssistant` and `PluginDescriptor`.</description>
+        <result>
+          <columns count="2" primary="Artifact">
+            <column>Artifact</column>
+            <column>PluginDescriptor</column>
+          </columns>
+          <rows count="1">
+            <row key="31f216a3f338d99d8ebf171ead4ece97ad96dc7c2a1b71846b8fc56e55b5daf8">
+              <column name="Artifact">
+                <element language="Generic">ArtifactFile</element>
+                <source fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT.jar"></source>
+                <value>org.jqassistant.plugin:jqassistant-m2repo-plugin:jar:2.1.0-SNAPSHOT</value>
+              </column>
+              <column name="PluginDescriptor">
+                <element language="Generic">File</element>
+                <source fileName="/META-INF/jqassistant-plugin.xml">
+                  <parent fileName="/home/runner/.m2/repository/org/jqassistant/plugin/jqassistant-m2repo-plugin/2.1.0-SNAPSHOT/jqassistant-m2repo-plugin-2.1.0-SNAPSHOT.jar" group="org.jqassistant.plugin" name="jqassistant-m2repo-plugin" type="jar" version="2.1.0-SNAPSHOT"></parent>
+                </source>
+                <value>/META-INF/jqassistant-plugin.xml</value>
+              </column>
+            </row>
+          </rows>
+        </result>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>1</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>39</duration>
+      </concept>
+      <concept id="jqassistant-plugin-plugin:PluginRegistersProcedure" abstract="false">
+        <description>Creates a `REGISTERS` relation between all procedure class elements of the jQAssistant plugin
+            descriptor to the matching Java type.</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>137</duration>
+        <required-concept id="jqassistant-plugin-plugin:PluginDescriptor">
+          <status>success</status>
+        </required-concept>
+      </concept>
+      <constraint id="jqassistant-plugin-plugin:Neo4jProceduresMustBeRegistered">
+        <description>Types declaring Neo4j procedures must be registered.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>44</duration>
+        <required-concept id="neo4j:Procedure">
+          <status>success</status>
+        </required-concept>
+        <required-concept id="jqassistant-plugin-plugin:PluginRegistersProcedure">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <concept id="neo4j:UserFunction" abstract="false">
+        <description>Labels all types annotated with "@org.neo4j.procedure.UserFunction" with `Neo4j` and
+            `UserFunction`.</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>36</duration>
+      </concept>
+      <concept id="jqassistant-plugin-plugin:PluginRegistersUserFunction" abstract="false">
+        <description>Creates a `REGISTERS` relation between all function class elements of the jQAssistant plugin
+            descriptor to the matching Java type.</description>
+        <verificationResult>
+          <success>false</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="4">info</severity>
+        <duration>120</duration>
+        <required-concept id="jqassistant-plugin-plugin:PluginDescriptor">
+          <status>success</status>
+        </required-concept>
+      </concept>
+      <constraint id="jqassistant-plugin-plugin:Neo4jUserFunctionsMustBeRegistered">
+        <description>Types declaring Neo4j user functions must be registered.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>33</duration>
+        <required-concept id="neo4j:UserFunction">
+          <status>success</status>
+        </required-concept>
+        <required-concept id="jqassistant-plugin-plugin:PluginRegistersUserFunction">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <constraint id="jqassistant-plugin-plugin:PluginDescriptorShouldProvideVersion">
+        <description>The jQAssistant XML Plugin descriptor ("/META-INF/jqassistant-plugin.xml") should provide a "version" attribute for its root element.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="3">minor</severity>
+        <duration>113</duration>
+        <required-concept id="jqassistant-plugin-plugin:PluginDescriptor">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <duration>609</duration>
+    </group>
+    <group id="jqassistant-plugin-package:Default" date="2026-11-16T16:40:46">
+      <concept id="java:GeneratedLombokType" abstract="false">
+        <description>Labels types generated by Lombok as 'Generated' (requires 'lombok.addLombokGeneratedAnnotation=true' in 'lombok.config').</description>
+        <result>
+          <columns count="1" primary="GeneratedTypes">
+            <column>GeneratedTypes</column>
+          </columns>
+          <rows count="1">
+            <row key="c9819fc9f7afdd12fb8b1bf21ffa06a62c38f5ead35377310bbcbae0f10c61df">
+              <column name="GeneratedTypes">
+                <value>1</value>
+              </column>
+            </row>
+          </rows>
+        </result>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>1</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="3">minor</severity>
+        <duration>40</duration>
+      </concept>
+      <concept id="java:GeneratedType" abstract="false">
+        <description>Reports the count of types labeled with `Generated`, grouped by containing artifact.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="3">minor</severity>
+        <duration>1</duration>
+        <providing-concept id="java:GeneratedLombokType">
+          <status>success</status>
+        </providing-concept>
+      </concept>
+      <constraint id="jqassistant-plugin-package:PackagesMustHaveGroupIdPrefix">
+        <description>All package names used in a Maven project must start with the groupId.</description>
+        <verificationResult>
+          <success>true</success>
+          <rowCount>0</rowCount>
+        </verificationResult>
+        <status>success</status>
+        <severity level="2">major</severity>
+        <duration>90</duration>
+        <required-concept id="java:GeneratedType">
+          <status>success</status>
+        </required-concept>
+      </constraint>
+      <duration>147</duration>
+    </group>
+    <duration>149</duration>
+  </group>
+</jqassistant-report>
